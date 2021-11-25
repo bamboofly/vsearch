@@ -1,0 +1,3 @@
+include ':vSearch'
+include ':app'
+rootProject.name = "Contacts"
