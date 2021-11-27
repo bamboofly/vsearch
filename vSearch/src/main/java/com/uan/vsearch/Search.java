@@ -1,20 +1,18 @@
 package com.uan.vsearch;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Handler;
 
 public class Search {
 
     private ArrayList<ContactsData> mContactsList = new ArrayList<>();
 
-    private HashMap<String, ArrayList<int[]>> mPingyinMap = new HashMap<>();
+    private HashMap<String, ArrayList<WordTarget>> mPingyinMap = new HashMap<>();
 
     private int[] mMapArray = new int[1024 * 1024];
 
@@ -26,36 +24,39 @@ public class Search {
 
         int length = voice.length();
 
-        HashMap<Integer, Scoring.Hit> hashMap = new HashMap<>();
-        ArrayList<Scoring.Hit> scoreList = new ArrayList<>();
+        HashMap<Integer, Scores> hashMap = new HashMap<>();
+        ArrayList<Scores> scoresList = new ArrayList<>();
         final int intLen = length + 2;
 
         for (int i = 0; i < length; i++) {
             String zi = voice.substring(i, i + 1);
             String pingyin = mPingYinFile.getPingyin(zi);
 
-            ArrayList<int[]> arrayList = mPingyinMap.get(pingyin);
+            ArrayList<WordTarget> arrayList = mPingyinMap.get(pingyin);
             for (int j = 0; j < arrayList.size(); j++) {
-                int[] ints = arrayList.get(j);
-                Scoring.Hit scores = hashMap.get(ints[0]);
+                WordTarget target = arrayList.get(j);
+                Scores scores = hashMap.get(target.nameIndex);
                 if (scores == null) {
-                    scores = new Scoring.Hit(length);
-                    scores.index = ints[0];
-                    hashMap.put(ints[0], scores);
-                    scoreList.add(scores);
+                    scores = new Scores();
+                    scores.length = target.nameLength;
+                    hashMap.put(target.nameIndex, scores);
+                    scoresList.add(scores);
                 }
-                scores.hits[i] = ints[1] + 1;
+                Hit hit = new Hit();
+                hit.alike = 1f;
+                hit.vIndex = i;
+                hit.target = target;
             }
         }
 
-        scoringAndSort(scoreList);
+        scoringAndSort(scoresList);
         
 
     }
 
-    private void scoringAndSort(ArrayList<Scoring.Hit> list) {
+    private void scoringAndSort(ArrayList<Scores> list) {
 
-        for (Scoring.Hit hit :
+        for (Scores hit :
                 list) {
             mScoring.scoring(hit);
         }
@@ -89,22 +90,18 @@ public class Search {
             String name = data.name;
 
             int length = name.length();
-            HashMap<String, int[]> hashMap = new HashMap<>();
+            HashMap<String, WordTarget> hashMap = new HashMap<>();
 
             for (int i = 0; i < length; i++) {
                 String zi = name.substring(i, i + 1);
                 String pingyin = mPingYinFile.getPingyin(zi);
-                int[] ints = hashMap.get(pingyin);
-                if (ints == null) {
-                    hashMap.put(pingyin, new int[]{j, length, i});
+                WordTarget target = hashMap.get(pingyin);
+                if (target == null) {
+                    target = new WordTarget(j, length);
+                    target.addIndex(i);
+                    hashMap.put(pingyin, target);
                 } else {
-                    int[] newInts = new int[ints.length + 1];
-                    for (int k = 0; k < ints.length; k++) {
-                        newInts[k] = ints[k];
-                    }
-                    newInts[newInts.length - 1] = i;
-                    newInts[ints.length - 1] = ints[ints.length - 1] | 0x80000000;
-                    hashMap.put(pingyin, newInts);
+                    target.addIndex(i);
                 }
             }
 
@@ -112,13 +109,13 @@ public class Search {
             Iterator<String> iterator = keySet.iterator();
             while (iterator.hasNext()) {
                 String next = iterator.next();
-                int[] ints = hashMap.get(next);
-                ArrayList<int[]> arrayList = mPingyinMap.get(next);
+                WordTarget target = hashMap.get(next);
+                ArrayList<WordTarget> arrayList = mPingyinMap.get(next);
                 if (arrayList == null) {
                     arrayList = new ArrayList<>();
                     mPingyinMap.put(next, arrayList);
                 }
-                arrayList.add(ints);
+                arrayList.add(target);
             }
 
 //            for (int i = 0; i < length; ++i) {
