@@ -1,5 +1,8 @@
 package com.uan.vsearch;
 
+import android.content.Context;
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,44 +17,77 @@ public class Search {
 
     private HashMap<String, ArrayList<WordTarget>> mPingyinMap = new HashMap<>();
 
-    private int[] mMapArray = new int[1024 * 1024];
+    private PinyinStore mPinyinStore;
 
-    private PingYinFile mPingYinFile = new PingYinFile(null);
+    private NearPinyinGraph mNearPinyinGraph;
 
     private final Scoring mScoring = new Scoring();
 
-    public void search(String voice) {
+    public void init(Context context) {
+        mPinyinStore = new PinyinStore();
+        mPinyinStore.buildPinyin(context);
+
+        mNearPinyinGraph = new NearPinyinGraph();
+        mNearPinyinGraph.buildPinyinGraph(context);
+    }
+
+    public List<ContactsData> search(String voice, float dis) {
 
         int length = voice.length();
 
         HashMap<Integer, Scores> hashMap = new HashMap<>();
         ArrayList<Scores> scoresList = new ArrayList<>();
-        final int intLen = length + 2;
 
         for (int i = 0; i < length; i++) {
             String zi = voice.substring(i, i + 1);
-            String pingyin = mPingYinFile.getPingyin(zi);
+            String pingyin = mPinyinStore.getPinyin(zi);
 
-            ArrayList<WordTarget> arrayList = mPingyinMap.get(pingyin);
-            for (int j = 0; j < arrayList.size(); j++) {
-                WordTarget target = arrayList.get(j);
-                Scores scores = hashMap.get(target.nameIndex);
-                if (scores == null) {
-                    scores = new Scores();
-                    scores.length = target.nameLength;
-                    hashMap.put(target.nameIndex, scores);
-                    scoresList.add(scores);
+            if (TextUtils.isEmpty(pingyin)) {
+                continue;
+            }
+
+            LinkedList<NearPinyin> nearPinyinList = mNearPinyinGraph.getNearPinyin(pingyin, dis);
+
+            for (NearPinyin nearPinyin : nearPinyinList) {
+
+                ArrayList<WordTarget> arrayList = mPingyinMap.get(nearPinyin.pinyin);
+                if (arrayList == null) {
+                    continue;
                 }
-                Hit hit = new Hit();
-                hit.alike = 1f;
-                hit.vIndex = i;
-                hit.target = target;
+
+                for (int j = 0; j < arrayList.size(); j++) {
+                    WordTarget target = arrayList.get(j);
+                    Scores scores = hashMap.get(target.nameIndex);
+                    if (scores == null) {
+                        scores = new Scores(target.nameIndex, target.nameLength);
+                        hashMap.put(target.nameIndex, scores);
+                        scoresList.add(scores);
+                    }
+                    Hit hit = new Hit();
+                    hit.alike = nearPinyin.alike;
+                    hit.vIndex = i;
+                    hit.target = target;
+                    scores.hits.push(hit);
+                }
             }
         }
 
         scoringAndSort(scoresList);
-        
 
+        List<ContactsData> searchList;
+        if (scoresList.size() > 7) {
+            searchList = new ArrayList<>();
+        } else {
+            searchList = new LinkedList<>();
+        }
+
+        for (int i = 0; i < scoresList.size(); i++) {
+            Scores scores = scoresList.get(i);
+            ContactsData data = mContactsList.get(scores.index);
+            searchList.add(data);
+        }
+
+        return searchList;
     }
 
     private void scoringAndSort(ArrayList<Scores> list) {
@@ -63,9 +99,9 @@ public class Search {
 
         Collections.sort(list, (o1, o2) -> {
             if (o1.score > o2.score) {
-                return 1;
-            } else if (o1.score < o2.score){
                 return -1;
+            } else if (o1.score < o2.score) {
+                return 1;
             }
             return 0;
         });
@@ -79,11 +115,11 @@ public class Search {
 
         mContactsList.addAll(list);
 
-
+        mPingyinMap = buildMap(mContactsList);
     }
 
-    private void buildMap() {
-        ArrayList<ContactsData> list = mContactsList;
+    private HashMap<String, ArrayList<WordTarget>> buildMap(ArrayList<ContactsData> list) {
+        HashMap<String, ArrayList<WordTarget>> pinyinMap = new HashMap<>();
 
         for (int j = 0; j < list.size(); j++) {
             ContactsData data = list.get(j);
@@ -94,7 +130,7 @@ public class Search {
 
             for (int i = 0; i < length; i++) {
                 String zi = name.substring(i, i + 1);
-                String pingyin = mPingYinFile.getPingyin(zi);
+                String pingyin = mPinyinStore.getPinyin(zi);
                 WordTarget target = hashMap.get(pingyin);
                 if (target == null) {
                     target = new WordTarget(j, length);
@@ -110,36 +146,17 @@ public class Search {
             while (iterator.hasNext()) {
                 String next = iterator.next();
                 WordTarget target = hashMap.get(next);
-                ArrayList<WordTarget> arrayList = mPingyinMap.get(next);
+                ArrayList<WordTarget> arrayList = pinyinMap.get(next);
                 if (arrayList == null) {
                     arrayList = new ArrayList<>();
-                    mPingyinMap.put(next, arrayList);
+                    pinyinMap.put(next, arrayList);
                 }
                 arrayList.add(target);
             }
-
-//            for (int i = 0; i < length; ++i) {
-//                String zi = name.substring(i, i + 1);
-//                String pingyin = mPingYinFile.getPingyin(zi);
-//
-//                ArrayList<int[]> arrayList = mPingyinMap.get(pingyin);
-//                if (arrayList == null) {
-//                    arrayList = new ArrayList<>();
-//                    mPingyinMap.put(pingyin, arrayList);
-//                }
-//
-//                arrayList.add(new int[]{j, i});
-//
-//            }
         }
 
-
+        return pinyinMap;
     }
-
-    private boolean isHanzi(String s) {
-        return true;
-    }
-
 
 
 }

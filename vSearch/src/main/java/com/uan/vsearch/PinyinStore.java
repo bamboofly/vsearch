@@ -20,14 +20,11 @@ public class PinyinStore {
 
     private final static int RADIX_HEX = 16;
 
-    private final Context mContext;
-
     private final ArrayList<PinyinBlock> mBlockArray = new ArrayList<>();
 
     private final HashMap<String, String> mPinyinToneMap = new HashMap<>();
 
-    public PinyinStore(Context context) {
-        mContext = context;
+    public PinyinStore() {
         buildToneMap();
     }
 
@@ -81,8 +78,8 @@ public class PinyinStore {
         return "";
     }
 
-    public void buildPinyin() {
-        AssetManager assets = mContext.getAssets();
+    public void buildPinyin(Context context) {
+        AssetManager assets = context.getAssets();
         InputStream inputStream = null;
         try {
             inputStream = assets.open(PINYIN_MAP_FILE_NAME);

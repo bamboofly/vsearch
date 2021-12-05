@@ -2,7 +2,12 @@ package com.uan.vsearch;
 
 public class ContactsData {
 
-    public String name;
+    public final String name;
 
-    public String phoneNum;
+    public final String phoneNum;
+
+    public ContactsData(String n, String p) {
+        name = n;
+        phoneNum = p;
+    }
 }

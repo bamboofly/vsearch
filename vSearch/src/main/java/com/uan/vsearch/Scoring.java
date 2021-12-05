@@ -7,41 +7,9 @@ import java.util.TreeSet;
 
 public class Scoring {
 
-
     private final float CONTINUE_WORD_POSITIVE_WEIGHTING = 2.0f;
 
     private final float CONTINUE_WORD_REVERSE_WEIGHTING = 1.5f;
-
-
-/*    public void scoring(Hit hit) {
-
-        final int length = hit.hits.length;
-        final int[] hits = hit.hits;
-        float score = 0;
-        float tempScore = 1;
-        int current = 0;
-        int pre = -1;
-        for (int i = 0; i < length; i++) {
-            current = hits[i];
-            if (current != 0) {
-                if (current - 1 == pre) {
-                    tempScore = tempScore * CONTINUE_WORD_POSITIVE_WEIGHTING;
-                } else if (current + 1 == pre) {
-                    tempScore = tempScore * CONTINUE_WORD_REVERSE_WEIGHTING;
-                } else {
-                    tempScore = 1;
-                }
-            } else {
-                score += tempScore;
-                tempScore = 1;
-            }
-
-            pre = current;
-        }
-
-        hit.score = score;
-
-    }*/
 
     public void scoring(Scores scores) {
 
@@ -52,9 +20,9 @@ public class Scoring {
             @Override
             public int compare(Hit o1, Hit o2) {
                 if (o1.hitIndex > o2.hitIndex) {
-                    return -1;
-                } else if (o1.hitIndex < o2.hitIndex){
                     return 1;
+                } else if (o1.hitIndex < o2.hitIndex) {
+                    return -1;
                 }
                 return 0;
             }
@@ -69,18 +37,6 @@ public class Scoring {
                 hitTreeSet.add(remove);
             }
         }
-
-//        Collections.sort(oneList, new Comparator<com.uan.vsearch.Hit>() {
-//            @Override
-//            public int compare(com.uan.vsearch.Hit o1, com.uan.vsearch.Hit o2) {
-//                if (o1.target.getFirstIndex() > o2.target.getFirstIndex()) {
-//                    return -1;
-//                } else if (o1.target.getFirstIndex() < o2.target.getFirstIndex()){
-//                    return 1;
-//                }
-//                return 0;
-//            }
-//        });
 
         for (Hit multiHit : multiList) {
             LinkedList<Integer> wordIndexList = multiHit.target.getWordIndexList();
@@ -133,28 +89,32 @@ public class Scoring {
         }
 
         float score = 0;
-        float tempScore = 1;
+        float tempScore = 0;
         int current = 0;
         int pre = -1;
         Iterator<Hit> hitIterator = hitTreeSet.iterator();
+
         while (hitIterator.hasNext()) {
             Hit hit = hitIterator.next();
             current = hit.hitIndex;
+
             if (current != 0) {
                 if (current - 1 == pre) {
-                    tempScore = hit.alike * tempScore * CONTINUE_WORD_POSITIVE_WEIGHTING;
+                    tempScore += hit.alike * tempScore * CONTINUE_WORD_POSITIVE_WEIGHTING;
                 } else if (current + 1 == pre) {
-                    tempScore = hit.alike * tempScore * CONTINUE_WORD_REVERSE_WEIGHTING;
+                    tempScore += hit.alike * tempScore * CONTINUE_WORD_REVERSE_WEIGHTING;
                 } else {
+                    score += tempScore;
                     tempScore = hit.alike;
                 }
             } else {
-                score += tempScore;
-                tempScore = 1;
+                tempScore = hit.alike;
             }
 
             pre = current;
         }
+
+        score += tempScore;
 
         scores.score = score / scores.length;
     }

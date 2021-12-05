@@ -3,8 +3,13 @@ package com.uan.vsearch;
 import java.util.LinkedList;
 
 public class Scores {
-    int index;
-    int length;
+    final int index;
+    final int length;
     float score;
-    LinkedList<Hit> hits = new LinkedList<>();
+    final LinkedList<Hit> hits = new LinkedList<>();
+
+    public Scores(int i, int l) {
+        index = i;
+        length = l;
+    }
 }
