@@ -28,8 +28,6 @@ public class WordTarget {
     }
 
     public LinkedList<Integer> getWordIndexList() {
-        LinkedList<Integer> list = new LinkedList<>();
-        Collections.copy(list, wordIndexList);
-        return list;
+        return new LinkedList<>(wordIndexList);
     }
 }
