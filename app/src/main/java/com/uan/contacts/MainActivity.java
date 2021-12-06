@@ -89,9 +89,11 @@ public class MainActivity extends AppCompatActivity {
         contactsDataArrayList.add(new ContactsData("百度-张三", "10011"));
         contactsDataArrayList.add(new ContactsData("华为深圳利四", "323232"));
         contactsDataArrayList.add(new ContactsData("东莞华为昭武", "123532"));
+        contactsDataArrayList.add(new ContactsData("83号技师", "10086"));
+        contactsDataArrayList.add(new ContactsData("雅阁77技师", "10011"));
         search.addContacts(contactsDataArrayList);
 
-        List<ContactsData> list = search.search("东莞李四", 0.2f);
+        List<ContactsData> list = search.search("77号技师", 0.2f);
         for (ContactsData data : list) {
             Log.e("lianghuan", "name " + data.name);
         }
