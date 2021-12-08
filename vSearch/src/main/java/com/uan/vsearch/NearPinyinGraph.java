@@ -2,22 +2,22 @@ package com.uan.vsearch;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.util.Log;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NearPinyinGraph {
 
-    private static final String NEAR_PINYIN_FILE_NAME = "near-pinyin.txt";
     private static final String TAG = "NearPinyinGraph";
+    private static final String NEAR_PINYIN_FILE_NAME = "pinyin-tone.txt";
+    private static final String NEAR_SHENG_MU_FILE_NAME = "near-shengmu.txt";
 
     private static final String PINYIN_ZH = "zh";
     private static final String PINYIN_SH = "sh";
@@ -84,47 +84,65 @@ public class NearPinyinGraph {
         // 构建有无后鼻音相似度
         connectG(mPinyinMap);
 
+        // 构建自定义相似
+        connectCustomLike(mPinyinMap, context);
     }
+
+    private void connectNode(Node one, Node two, float dis) {
+        Edge edge = new Edge();
+        edge.one = one;
+        edge.two = two;
+
+        edge.distance = dis;
+
+        one.mEdges.add(edge);
+        two.mEdges.add(edge);
+    }
+
+    private void connectCustomLike(HashMap<String, Node> pinyinMap, Context context) {
+
+        Pattern pattern = Pattern.compile("^([a-z]+) - ([a-z]+) : ([/.0-9]+)$");
+
+        new LineReader(context.getAssets(), NEAR_SHENG_MU_FILE_NAME)
+                .eachLine(l -> {
+                    Matcher matcher = pattern.matcher(l);
+                    int groupCount = matcher.groupCount();
+
+                    if (groupCount < 3) {
+                        return;
+                    }
+                    boolean b = matcher.find();
+                    if (!b) {
+                        Log.e(TAG, "not match " + ", l " + l);
+                    }
+                    String one = matcher.group(1);
+                    String two = matcher.group(2);
+                    String alike = matcher.group(3);
+
+                    float f = Float.parseFloat(alike);
+
+                    for (String key : pinyinMap.keySet()) {
+                        if (key.startsWith(one)) {
+                            String nearKey = two + key.substring(1);
+                            if (pinyinMap.containsKey(nearKey)) {
+                                Node nearNode = pinyinMap.get(nearKey);
+                                Node node = pinyinMap.get(key);
+
+                                connectNode(node, nearNode, f);
+                            }
+                        }
+                    }
+                });
+    }
+
 
     private void readPinyinFromFile(Context context, HashMap<String, Node> hashMap) {
         AssetManager assets = context.getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assets.open(NEAR_PINYIN_FILE_NAME);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-        String line = null;
-        try {
-            line = bufferedReader.readLine();
-            while (line != null) {
-                line = line.trim();
-                Node node = new Node(line);
-                hashMap.put(line, node);
-
-                line = bufferedReader.readLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        new LineReader(assets, NEAR_PINYIN_FILE_NAME)
+                .eachLine(l -> {
+                    Node node = new Node(l);
+                    hashMap.put(l, node);
+                });
     }
 
     /**
