@@ -49,7 +49,7 @@ public class Scoring {
                 boolean repeat = false;
                 while (hitIterator.hasNext()) {
                     Hit oneHit = hitIterator.next();
-                    if (index == oneHit.target.getFirstIndex()) {
+                    if (index == oneHit.hitIndex) {
                         repeat = true;
                         break;
                     }
@@ -64,11 +64,11 @@ public class Scoring {
                 hitIterator = hitTreeSet.iterator();
                 while (hitIterator.hasNext()) {
                     Hit oneHit = hitIterator.next();
-                    if (index == oneHit.target.getFirstIndex() - 1) {
+                    if (index == oneHit.hitIndex - 1) {
                         multiHit.hitIndex = index;
                         find = true;
                         break;
-                    } else if (index == oneHit.target.getFirstIndex() + 1) {
+                    } else if (index == oneHit.hitIndex + 1) {
                         multiHit.hitIndex = index;
                         find = true;
                         break;
@@ -78,6 +78,7 @@ public class Scoring {
                 // 找到合适的索引后插入到对应的位置，而不是添加到头或尾，避免后面重新排序
                 if (find) {
                     hitTreeSet.add(multiHit);
+                    break;
                 }
             }
 
@@ -100,9 +101,11 @@ public class Scoring {
 
             if (current != 0) {
                 if (current - 1 == pre) {
-                    tempScore += hit.alike * tempScore * CONTINUE_WORD_POSITIVE_WEIGHTING;
+//                    tempScore += hit.alike * tempScore * CONTINUE_WORD_POSITIVE_WEIGHTING;
+                    tempScore += hit.alike * CONTINUE_WORD_POSITIVE_WEIGHTING;
                 } else if (current + 1 == pre) {
-                    tempScore += hit.alike * tempScore * CONTINUE_WORD_REVERSE_WEIGHTING;
+//                    tempScore += hit.alike * tempScore * CONTINUE_WORD_REVERSE_WEIGHTING;
+                    tempScore += hit.alike * CONTINUE_WORD_REVERSE_WEIGHTING;
                 } else {
                     score += tempScore;
                     tempScore = hit.alike;
@@ -116,7 +119,7 @@ public class Scoring {
 
         score += tempScore;
 
-        scores.score = score / scores.length;
+        scores.score = score;
     }
 
 }
