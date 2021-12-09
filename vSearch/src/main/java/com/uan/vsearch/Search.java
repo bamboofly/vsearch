@@ -6,14 +6,13 @@ import android.text.TextUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 public class Search {
 
-    private ArrayList<ContactsData> mContactsList = new ArrayList<>();
+    private ArrayList<String> mSearchSource = new ArrayList<>();
 
     private HashMap<String, ArrayList<WordTarget>> mPingyinMap = new HashMap<>();
 
@@ -31,8 +30,7 @@ public class Search {
         mNearPinyinGraph.buildPinyinGraph(context);
     }
 
-    public List<ContactsData> search(String voice, float dis) {
-
+    public List<SearchResult> search(String voice, float dis) {
         int length = voice.length();
 
         HashMap<Integer, Scores> hashMap = new HashMap<>();
@@ -74,7 +72,7 @@ public class Search {
 
         scoringAndSort(scoresList);
 
-        List<ContactsData> searchList;
+        List<SearchResult> searchList;
         if (scoresList.size() > 7) {
             searchList = new ArrayList<>();
         } else {
@@ -83,8 +81,8 @@ public class Search {
 
         for (int i = 0; i < scoresList.size(); i++) {
             Scores scores = scoresList.get(i);
-            ContactsData data = mContactsList.get(scores.index);
-            searchList.add(data);
+            String s = mSearchSource.get(scores.index);
+            searchList.add(new SearchResult(s, scores.index, scores.score));
         }
 
         return searchList;
@@ -108,22 +106,21 @@ public class Search {
     }
 
 
-    public void addContacts(List<ContactsData> list) {
+    public void addSearchSource(List<String> list) {
         if (list == null) {
             return;
         }
 
-        mContactsList.addAll(list);
+        mSearchSource.addAll(list);
 
-        mPingyinMap = buildMap(mContactsList);
+        mPingyinMap = buildMap(mSearchSource);
     }
 
-    private HashMap<String, ArrayList<WordTarget>> buildMap(ArrayList<ContactsData> list) {
+    private HashMap<String, ArrayList<WordTarget>> buildMap(ArrayList<String> list) {
         HashMap<String, ArrayList<WordTarget>> pinyinMap = new HashMap<>();
 
         for (int j = 0; j < list.size(); j++) {
-            ContactsData data = list.get(j);
-            String name = data.name;
+            String name = list.get(j);
 
             int length = name.length();
             HashMap<String, WordTarget> hashMap = new HashMap<>();
@@ -142,9 +139,7 @@ public class Search {
             }
 
             Set<String> keySet = hashMap.keySet();
-            Iterator<String> iterator = keySet.iterator();
-            while (iterator.hasNext()) {
-                String next = iterator.next();
+            for (String next : keySet) {
                 WordTarget target = hashMap.get(next);
                 ArrayList<WordTarget> arrayList = pinyinMap.get(next);
                 if (arrayList == null) {
