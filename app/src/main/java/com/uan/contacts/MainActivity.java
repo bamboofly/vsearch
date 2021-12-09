@@ -6,13 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.uan.vsearch.ContactsData;
-import com.uan.vsearch.NearPinyin;
-import com.uan.vsearch.NearPinyinGraph;
-import com.uan.vsearch.PinyinStore;
 import com.uan.vsearch.Search;
+import com.uan.vsearch.SearchResult;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -84,22 +81,25 @@ public class MainActivity extends AppCompatActivity {
         Search search = new Search();
         search.init(this);
 
-        ArrayList<ContactsData> contactsDataArrayList = new ArrayList<>();
-        contactsDataArrayList.add(new ContactsData("梁欢", "10086"));
-        contactsDataArrayList.add(new ContactsData("百度-张三", "10011"));
-        contactsDataArrayList.add(new ContactsData("华为深圳利四", "323232"));
-        contactsDataArrayList.add(new ContactsData("东莞华为昭武", "123532"));
-        contactsDataArrayList.add(new ContactsData("83号技师", "10086"));
-        contactsDataArrayList.add(new ContactsData("雅阁77技师", "10011"));
-        contactsDataArrayList.add(new ContactsData("贝贝", "123456"));
-        contactsDataArrayList.add(new ContactsData("配钥匙", "43256"));
-        contactsDataArrayList.add(new ContactsData("北京-欢欢", "988433"));
-        contactsDataArrayList.add(new ContactsData("小混蛋", "2342342"));
-        search.addContacts(contactsDataArrayList);
+        ArrayList<String> contactsDataArrayList = new ArrayList<>();
+        contactsDataArrayList.add("梁欢");
+        contactsDataArrayList.add("百度-张三");
+        contactsDataArrayList.add("华为深圳利四");
+        contactsDataArrayList.add("东莞华为昭武");
+        contactsDataArrayList.add("83号技师");
+        contactsDataArrayList.add("雅阁77技师");
+        contactsDataArrayList.add("贝贝");
+        contactsDataArrayList.add("配钥匙");
+        contactsDataArrayList.add("北京-欢欢");
+        contactsDataArrayList.add("小混蛋");
+        contactsDataArrayList.add("小日子");
+        contactsDataArrayList.add("岗头村委");
+        contactsDataArrayList.add("自己人");
+        search.addSearchSource(contactsDataArrayList);
 
-        List<ContactsData> list = search.search("欢欢", 0.3f);
-        for (ContactsData data : list) {
-            Log.e("lianghuan", "name " + data.name);
+        List<SearchResult> list = search.search("几几仁", 0.3f);
+        for (SearchResult data : list) {
+            Log.e("lianghuan", "name " + data.getString() + ", score " + data.getScore());
         }
     }
 }
