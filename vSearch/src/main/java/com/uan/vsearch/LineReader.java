@@ -25,6 +25,10 @@ public class LineReader {
             e.printStackTrace();
         }
 
+        if (inputStream == null) {
+            throw new RuntimeException("can not open file with name " + fileName + ", please check again");
+        }
+
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
         String line = null;
@@ -39,19 +43,15 @@ public class LineReader {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                bufferedReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

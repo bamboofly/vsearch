@@ -7,9 +7,17 @@ import java.util.TreeSet;
 
 public class Scoring {
 
-    private final float CONTINUE_WORD_POSITIVE_WEIGHTING = 2.0f;
+    private final float CONTINUE_ALL_POSITIVE_WEIGHTING = 1.5f;
 
-    private final float CONTINUE_WORD_REVERSE_WEIGHTING = 1.5f;
+    private final float CONTINUE_ALL_REVERSE_WEIGHTING = 1.2f;
+
+    private final float CONTINUE_VOICE_POSITIVE_WEIGHTING = 1.2f;
+
+    private final float CONTINUE_VOICE_REVERSE_WEIGHTING = 1f;
+
+    private final float CONTINUE_ALL_POSITIVE_INITIAL_VALUE = 1.3f;
+
+    private final float CONTINUE_ALL_REVERSE_INITIAL_VALUE = 1.1f;
 
     public void scoring(Scores scores) {
 
@@ -89,32 +97,114 @@ public class Scoring {
 
         }
 
+        // TODO 移除重复vIndex
+//        HashSet<Integer> retainSet = new HashSet<>();
+//        HashSet<Integer> removeSet = new HashSet<>();
+//        Iterator<Hit> iterator = hitTreeSet.iterator();
+//        while (iterator.hasNext()) {
+//            Hit hit = iterator.next();
+//            int vIndex = hit.vIndex;
+//            int hitIndex = hit.hitIndex;
+//            if (indexArray[vIndex] > 0) {
+//                multiVoiceIndexTreeSet.add(hit);
+//            } else {
+//                indexArray[vIndex] = 1;
+//            }
+//        }
+//        hitTreeSet.remove()
+
         float score = 0;
         float tempScore = 0;
-        int current = 0;
-        int pre = -1;
+        int currentWordIndex = 0;
+        int preWordIndex = -1;
+        int currentVoiceIndex = 0;
+        int preVoiceIndex = -1;
+
+        boolean voicePositiveContinueFlag = false;
+        boolean wordPositiveContinueFlag = false;
+        boolean voiceReverseContinueFlag = false;
+        boolean wordReverseContinueFlag = false;
+
+        float allPositiveContinueWeight = CONTINUE_ALL_POSITIVE_INITIAL_VALUE;
+        float allReverseContinueWeight = CONTINUE_ALL_REVERSE_INITIAL_VALUE;
+        float voicePositiveContinueWeight = 1;
+        float wordPositiveContinueWeight = 1;
+        float voiceReverseContinueWeight = 1;
+        float wordReverseContinueWeight = 1;
+
+        float continueWeight = 1;
+
+        boolean firstFlag = true;
         Iterator<Hit> hitIterator = hitTreeSet.iterator();
 
         while (hitIterator.hasNext()) {
             Hit hit = hitIterator.next();
-            current = hit.hitIndex;
+            currentVoiceIndex = hit.vIndex;
+            currentWordIndex = hit.hitIndex;
 
-            if (current != 0) {
-                if (current - 1 == pre) {
-//                    tempScore += hit.alike * tempScore * CONTINUE_WORD_POSITIVE_WEIGHTING;
-                    tempScore += hit.alike * CONTINUE_WORD_POSITIVE_WEIGHTING;
-                } else if (current + 1 == pre) {
-//                    tempScore += hit.alike * tempScore * CONTINUE_WORD_REVERSE_WEIGHTING;
-                    tempScore += hit.alike * CONTINUE_WORD_REVERSE_WEIGHTING;
+            if (!firstFlag) {
+                if (preVoiceIndex + 1 == currentVoiceIndex) {
+                    voicePositiveContinueFlag = true;
                 } else {
+                    voicePositiveContinueFlag = false;
+                }
+
+                if (preVoiceIndex - 1 == currentVoiceIndex) {
+                    voiceReverseContinueFlag = true;
+                } else {
+                    voiceReverseContinueFlag = false;
+                }
+
+                if (preWordIndex + 1 == currentWordIndex) {
+                    wordPositiveContinueFlag = true;
+                } else {
+                    wordPositiveContinueFlag = false;
+                }
+
+                if (preWordIndex - 1 == currentWordIndex) {
+                    wordReverseContinueFlag = true;
+                } else {
+                    wordReverseContinueFlag = false;
+                }
+            }
+
+            if (firstFlag) {
+                tempScore = hit.alike;
+            } else {
+
+                if (voicePositiveContinueFlag && wordPositiveContinueFlag) {
+                    allPositiveContinueWeight = Math.max(allPositiveContinueWeight, voicePositiveContinueWeight) * CONTINUE_ALL_POSITIVE_WEIGHTING;
+                    voicePositiveContinueWeight = voiceReverseContinueWeight * CONTINUE_VOICE_POSITIVE_WEIGHTING;
+                    tempScore += hit.alike * Math.max(allPositiveContinueWeight, voicePositiveContinueWeight);
+                    voicePositiveContinueWeight = 1f;
+                    allReverseContinueWeight = CONTINUE_ALL_REVERSE_INITIAL_VALUE;
+                } else if (voiceReverseContinueFlag && wordReverseContinueFlag) {
+                    allReverseContinueWeight = Math.max(allReverseContinueWeight, voiceReverseContinueWeight) * CONTINUE_ALL_REVERSE_WEIGHTING;
+                    tempScore += hit.alike * continueWeight;
+                    voiceReverseContinueWeight = 1f;
+                    allPositiveContinueWeight = CONTINUE_ALL_POSITIVE_INITIAL_VALUE;
+                } else if (voicePositiveContinueFlag) {
+                    voicePositiveContinueWeight = voicePositiveContinueWeight * CONTINUE_VOICE_POSITIVE_WEIGHTING;
+                    tempScore += hit.alike * voicePositiveContinueWeight;
+                    allPositiveContinueWeight = CONTINUE_ALL_POSITIVE_INITIAL_VALUE;
+                    allReverseContinueWeight = CONTINUE_ALL_REVERSE_INITIAL_VALUE;
+                } else if (voiceReverseContinueFlag) {
+                    voiceReverseContinueWeight = voiceReverseContinueWeight * CONTINUE_VOICE_REVERSE_WEIGHTING;
+                    tempScore += hit.alike * voiceReverseContinueWeight;
+                    allPositiveContinueWeight = CONTINUE_ALL_POSITIVE_INITIAL_VALUE;
+                    allReverseContinueWeight = CONTINUE_ALL_REVERSE_INITIAL_VALUE;
+                } else {
+                    allPositiveContinueWeight = CONTINUE_ALL_POSITIVE_INITIAL_VALUE;
+                    allReverseContinueWeight = CONTINUE_ALL_REVERSE_INITIAL_VALUE;
+                    voicePositiveContinueWeight = 1f;
                     score += tempScore;
                     tempScore = hit.alike;
                 }
-            } else {
-                tempScore = hit.alike;
             }
 
-            pre = current;
+            preVoiceIndex = currentVoiceIndex;
+            preWordIndex = currentWordIndex;
+            firstFlag = false;
         }
 
         score += tempScore;

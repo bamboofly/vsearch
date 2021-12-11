@@ -4,7 +4,6 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +35,7 @@ public class Search {
         HashMap<Integer, Scores> hashMap = new HashMap<>();
         ArrayList<Scores> scoresList = new ArrayList<>();
 
+        // 标记
         for (int i = 0; i < length; i++) {
             String zi = voice.substring(i, i + 1);
             String pingyin = mPinyinStore.getPinyin(zi);
@@ -57,7 +57,7 @@ public class Search {
                     WordTarget target = arrayList.get(j);
                     Scores scores = hashMap.get(target.nameIndex);
                     if (scores == null) {
-                        scores = new Scores(target.nameIndex, target.nameLength);
+                        scores = new Scores(target.nameIndex, target.nameLength, voice.length());
                         hashMap.put(target.nameIndex, scores);
                         scoresList.add(scores);
                     }
@@ -70,7 +70,20 @@ public class Search {
             }
         }
 
-        scoringAndSort(scoresList);
+        // 计算评分
+        for (Scores hit : scoresList) {
+            mScoring.scoring(hit);
+        }
+
+        // 按评分降序
+        scoresList.sort((o1, o2) -> {
+            if (o1.score > o2.score) {
+                return -1;
+            } else if (o1.score < o2.score) {
+                return 1;
+            }
+            return 0;
+        });
 
         List<SearchResult> searchList;
         if (scoresList.size() > 7) {
@@ -86,23 +99,6 @@ public class Search {
         }
 
         return searchList;
-    }
-
-    private void scoringAndSort(ArrayList<Scores> list) {
-
-        for (Scores hit :
-                list) {
-            mScoring.scoring(hit);
-        }
-
-        Collections.sort(list, (o1, o2) -> {
-            if (o1.score > o2.score) {
-                return -1;
-            } else if (o1.score < o2.score) {
-                return 1;
-            }
-            return 0;
-        });
     }
 
 

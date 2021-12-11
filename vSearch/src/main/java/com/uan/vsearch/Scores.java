@@ -4,12 +4,14 @@ import java.util.LinkedList;
 
 public class Scores {
     final int index;
-    final int length;
+    final int nameLength;
+    final int searchLength;
     float score;
     final LinkedList<Hit> hits = new LinkedList<>();
 
-    public Scores(int i, int l) {
+    public Scores(int i, int nl, int sl) {
         index = i;
-        length = l;
+        nameLength = nl;
+        searchLength = sl;
     }
 }
