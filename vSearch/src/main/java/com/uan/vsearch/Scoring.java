@@ -1,117 +1,63 @@
 package com.uan.vsearch;
 
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
 public class Scoring {
 
-    private final float CONTINUE_ALL_POSITIVE_WEIGHTING = 1.5f;
+    private final static float CONTINUE_ALL_POSITIVE_WEIGHTING = 1.5f;
 
-    private final float CONTINUE_ALL_REVERSE_WEIGHTING = 1.2f;
+    private final static float CONTINUE_ALL_REVERSE_WEIGHTING = 1.2f;
 
-    private final float CONTINUE_VOICE_POSITIVE_WEIGHTING = 1.2f;
+    private final static float CONTINUE_VOICE_POSITIVE_WEIGHTING = 1.2f;
 
-    private final float CONTINUE_VOICE_REVERSE_WEIGHTING = 1f;
+    private final static float CONTINUE_VOICE_REVERSE_WEIGHTING = 1f;
 
-    private final float CONTINUE_ALL_POSITIVE_INITIAL_VALUE = 1.3f;
+    private final static float CONTINUE_ALL_POSITIVE_INITIAL_VALUE = 1.3f;
 
-    private final float CONTINUE_ALL_REVERSE_INITIAL_VALUE = 1.1f;
+    private final static float CONTINUE_ALL_REVERSE_INITIAL_VALUE = 1.1f;
 
     public void scoring(Scores scores) {
 
         LinkedList<Hit> hits = scores.hits;
 
-        LinkedList<Hit> multiList = new LinkedList<>();
-        TreeSet<Hit> hitTreeSet = new TreeSet<>(new Comparator<Hit>() {
-            @Override
-            public int compare(Hit o1, Hit o2) {
-                if (o1.hitIndex > o2.hitIndex) {
-                    return 1;
-                } else if (o1.hitIndex < o2.hitIndex) {
-                    return -1;
-                }
-                return 0;
+        boolean hasRepeatVIndex = false;
+        boolean hasMultiHitIndex = false;
+        HashSet<Integer> vIndexSet = new HashSet<>();
+        for (Hit hit : hits) {
+            if (hit.target.getIndexSize() > 1) {
+                hasMultiHitIndex = true;
+            } else if (vIndexSet.contains(hit.vIndex)) {
+                hasRepeatVIndex = true;
             }
+            vIndexSet.add(hit.vIndex);
+        }
+
+        if (hasMultiHitIndex || hasRepeatVIndex) {
+            scores.score = scoringRecursion(scores);
+            return;
+        }
+
+        float score = getScore(hits);
+
+        scores.score = score;
+    }
+
+    private float getScore(LinkedList<Hit> hits) {
+        TreeSet<Hit> hitTreeSet = new TreeSet<>((o1, o2) -> {
+            if (o1.hitIndex > o2.hitIndex) {
+                return 1;
+            } else if (o1.hitIndex < o2.hitIndex) {
+                return -1;
+            }
+            return 0;
         });
 
-        while (!hits.isEmpty()) {
-            Hit remove = hits.remove();
-            if (remove.target.getIndexSize() > 1) {
-                multiList.add(remove);
-            } else {
-                remove.hitIndex = remove.target.getFirstIndex();
-                hitTreeSet.add(remove);
-            }
-        }
-
-        for (Hit multiHit : multiList) {
-            LinkedList<Integer> wordIndexList = multiHit.target.getWordIndexList();
-
-            boolean find = false;
-            int unRepeatIndex = -1;
-            Iterator<Hit> hitIterator = hitTreeSet.iterator();
-
-            for (Integer index : wordIndexList) {
-                boolean repeat = false;
-                while (hitIterator.hasNext()) {
-                    Hit oneHit = hitIterator.next();
-                    if (index == oneHit.hitIndex) {
-                        repeat = true;
-                        break;
-                    }
-                }
-
-                if (repeat) {
-                    continue;
-                }
-
-                unRepeatIndex = index;
-
-                hitIterator = hitTreeSet.iterator();
-                while (hitIterator.hasNext()) {
-                    Hit oneHit = hitIterator.next();
-                    if (index == oneHit.hitIndex - 1) {
-                        multiHit.hitIndex = index;
-                        find = true;
-                        break;
-                    } else if (index == oneHit.hitIndex + 1) {
-                        multiHit.hitIndex = index;
-                        find = true;
-                        break;
-                    }
-                }
-
-                // 找到合适的索引后插入到对应的位置，而不是添加到头或尾，避免后面重新排序
-                if (find) {
-                    hitTreeSet.add(multiHit);
-                    break;
-                }
-            }
-
-            if (!find && unRepeatIndex != -1) {
-                multiHit.hitIndex = unRepeatIndex;
-                hitTreeSet.add(multiHit);
-            }
-
-        }
-
-        // TODO 移除重复vIndex
-//        HashSet<Integer> retainSet = new HashSet<>();
-//        HashSet<Integer> removeSet = new HashSet<>();
-//        Iterator<Hit> iterator = hitTreeSet.iterator();
-//        while (iterator.hasNext()) {
-//            Hit hit = iterator.next();
-//            int vIndex = hit.vIndex;
-//            int hitIndex = hit.hitIndex;
-//            if (indexArray[vIndex] > 0) {
-//                multiVoiceIndexTreeSet.add(hit);
-//            } else {
-//                indexArray[vIndex] = 1;
-//            }
-//        }
-//        hitTreeSet.remove()
+        hitTreeSet.addAll(hits);
 
         float score = 0;
         float tempScore = 0;
@@ -208,8 +154,97 @@ public class Scoring {
         }
 
         score += tempScore;
-
-        scores.score = score;
+        return score;
     }
 
+    private float scoringRecursion(Scores scores) {
+        LinkedList<Hit> hits = scores.hits;
+
+        ArrayList<LinkedList<Hit>> dfHitList = new ArrayList<>();
+
+        LinkedList<Hit> childrenList = null;
+        HashMap<WordTarget, Integer> hashMap = new HashMap<>();
+        int lackHitIndex = 0;
+        int preVIndex = -1;
+        for (Hit hit : hits) {
+            int vIndex = hit.vIndex;
+            if (!hashMap.containsKey(hit.target)) {
+                hashMap.put(hit.target, hit.target.getIndexSize() - 1);
+            } else {
+                hashMap.put(hit.target, hashMap.get(hit.target) - 1);
+            }
+
+            if (vIndex != preVIndex) {
+                childrenList = new LinkedList<>();
+                dfHitList.add(childrenList);
+            } else {
+                if (childrenList == null) {
+                    childrenList = new LinkedList<>();
+                    dfHitList.add(childrenList);
+                }
+            }
+            childrenList.add(hit);
+            preVIndex = vIndex;
+        }
+
+        for (Integer value : hashMap.values()) {
+            lackHitIndex += value;
+        }
+        lackHitIndex = Math.abs(lackHitIndex);
+
+        LinkedList<Hit> queue = new LinkedList<>();
+        return recursion(dfHitList, dfHitList.size(), 0, queue, lackHitIndex);
+    }
+
+    private float recursion(ArrayList<LinkedList<Hit>> hitList, int size, int arrayIndex,
+                            LinkedList<Hit> queue, int lackHitIndex) {
+
+        if (arrayIndex >= size) {
+            return getScore(queue);
+        } else {
+            LinkedList<Hit> hitLinkedList = hitList.get(arrayIndex);
+            float score = 0;
+            for (Hit hit : hitLinkedList) {
+                int indexSize = hit.target.getIndexSize();
+                // 被搜索文字中没有重复音，直接处理
+                if (indexSize == 1) {
+                    hit.hitIndex = hit.target.getFirstIndex();
+                    queue.addLast(hit);
+                    score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, lackHitIndex));
+                    queue.removeLast();
+                } else if (indexSize > 1) {
+                    LinkedList<Integer> wordIndexList = hit.target.getWordIndexList();
+                    // 处理被搜索文字中有重复音的情况
+                    for (Integer index : wordIndexList) {
+                        boolean repeat = false;
+                        for (Hit preHit : queue) {
+                            if (index == preHit.hitIndex) {
+                                repeat = true;
+                                break;
+                            }
+                        }
+                        if (repeat) {
+                            continue;
+                        }
+
+                        hit.hitIndex = index;
+                        queue.addLast(hit);
+                        score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, lackHitIndex));
+                        queue.removeLast();
+                    }
+
+                    // 丢掉这个Hit计算，有可能出现前面丢掉将hitIndex让给后面的Hit评分更高
+                    // lackHitIndex表示搜索字符串命中被搜索字符串的次数减去被命中字符的个数
+                    if (lackHitIndex > arrayIndex) {
+                        score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, lackHitIndex));
+                        count++;
+                    }
+                }
+
+            }
+            return score;
+        }
+    }
+
+    private int count = 0;
 }

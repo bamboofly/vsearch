@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.uan.vsearch.ContactsData;
+import com.uan.vsearch.LineReader;
 import com.uan.vsearch.Search;
 import com.uan.vsearch.SearchResult;
 
@@ -95,10 +96,24 @@ public class MainActivity extends AppCompatActivity {
         contactsDataArrayList.add("小日子");
         contactsDataArrayList.add("岗头村委");
         contactsDataArrayList.add("自己人");
+//        contactsDataArrayList.add("石和革");
+//        contactsDataArrayList.add("陈吉科");
+//        contactsDataArrayList.add("岑陈科");
+        contactsDataArrayList.add("欢欢嘻嘻");
+        new LineReader(getAssets(), "contacts.txt").eachLine(l -> {
+            contactsDataArrayList.add(l.trim());
+        });
         search.addSearchSource(contactsDataArrayList);
 
-        List<SearchResult> list = search.search("几几仁", 0.3f);
+        Log.i("lianghuan", "search start");
+        long start = System.currentTimeMillis();
+        List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻", 0.3f);
+        long end = System.currentTimeMillis();
+        Log.i("lianghuan", "search end, cost time " + (end - start));
         for (SearchResult data : list) {
+            if (data.getScore() < 1.1f) {
+                continue;
+            }
             Log.e("lianghuan", "name " + data.getString() + ", score " + data.getScore());
         }
     }

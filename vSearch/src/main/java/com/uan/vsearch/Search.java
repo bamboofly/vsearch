@@ -65,7 +65,7 @@ public class Search {
                     hit.alike = nearPinyin.alike;
                     hit.vIndex = i;
                     hit.target = target;
-                    scores.hits.push(hit);
+                    scores.hits.addLast(hit);
                 }
             }
         }
