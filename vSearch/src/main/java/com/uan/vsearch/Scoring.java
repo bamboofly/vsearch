@@ -1,13 +1,15 @@
 package com.uan.vsearch;
 
+import android.util.Log;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
 public class Scoring {
+    private static final String TAG = "Scoring";
 
     private final static float CONTINUE_ALL_POSITIVE_WEIGHTING = 1.5f;
 
@@ -38,13 +40,12 @@ public class Scoring {
         }
 
         if (hasMultiHitIndex || hasRepeatVIndex) {
+            count = 0;
             scores.score = scoringRecursion(scores);
-            return;
+            Log.e("lianghuan", "count = " + count);
+        } else {
+            scores.score = getScore(hits);
         }
-
-        float score = getScore(hits);
-
-        scores.score = score;
     }
 
     private float getScore(LinkedList<Hit> hits) {
@@ -163,16 +164,12 @@ public class Scoring {
         ArrayList<LinkedList<Hit>> dfHitList = new ArrayList<>();
 
         LinkedList<Hit> childrenList = null;
-        HashMap<WordTarget, Integer> hashMap = new HashMap<>();
-        int lackHitIndex = 0;
+        HashSet<WordTarget> wordTargetHashSet = new HashSet<>();
+        int canHitCount = 0;
         int preVIndex = -1;
         for (Hit hit : hits) {
             int vIndex = hit.vIndex;
-            if (!hashMap.containsKey(hit.target)) {
-                hashMap.put(hit.target, hit.target.getIndexSize() - 1);
-            } else {
-                hashMap.put(hit.target, hashMap.get(hit.target) - 1);
-            }
+            wordTargetHashSet.add(hit.target);
 
             if (vIndex != preVIndex) {
                 childrenList = new LinkedList<>();
@@ -187,19 +184,20 @@ public class Scoring {
             preVIndex = vIndex;
         }
 
-        for (Integer value : hashMap.values()) {
-            lackHitIndex += value;
+        Iterator<WordTarget> wordTargetIterator = wordTargetHashSet.iterator();
+        while (wordTargetIterator.hasNext()) {
+            WordTarget wordTarget = wordTargetIterator.next();
+            canHitCount += wordTarget.getIndexSize();
         }
-        lackHitIndex = Math.abs(lackHitIndex);
 
         LinkedList<Hit> queue = new LinkedList<>();
-        return recursion(dfHitList, dfHitList.size(), 0, queue, lackHitIndex);
+        return recursion(dfHitList, dfHitList.size(), 0, queue, canHitCount);
     }
 
     private float recursion(ArrayList<LinkedList<Hit>> hitList, int size, int arrayIndex,
-                            LinkedList<Hit> queue, int lackHitIndex) {
+                            LinkedList<Hit> queue, int canHitCount) {
 
-        if (arrayIndex >= size) {
+        if (arrayIndex >= size || queue.size() >= canHitCount) {
             return getScore(queue);
         } else {
             LinkedList<Hit> hitLinkedList = hitList.get(arrayIndex);
@@ -210,7 +208,7 @@ public class Scoring {
                 if (indexSize == 1) {
                     hit.hitIndex = hit.target.getFirstIndex();
                     queue.addLast(hit);
-                    score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, lackHitIndex));
+                    score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, canHitCount));
                     queue.removeLast();
                 } else if (indexSize > 1) {
                     LinkedList<Integer> wordIndexList = hit.target.getWordIndexList();
@@ -229,14 +227,14 @@ public class Scoring {
 
                         hit.hitIndex = index;
                         queue.addLast(hit);
-                        score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, lackHitIndex));
+                        score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, canHitCount));
                         queue.removeLast();
                     }
 
                     // 丢掉这个Hit计算，有可能出现前面丢掉将hitIndex让给后面的Hit评分更高
-                    // lackHitIndex表示搜索字符串命中被搜索字符串的次数减去被命中字符的个数
-                    if (lackHitIndex > arrayIndex) {
-                        score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, lackHitIndex));
+                    // 如果剩下的Hit数量大于能命中的数量时才进行计算
+                    if (size - arrayIndex > (canHitCount - queue.size())) {
+                        score = Math.max(score, recursion(hitList, size, arrayIndex + 1, queue, canHitCount));
                         count++;
                     }
                 }
