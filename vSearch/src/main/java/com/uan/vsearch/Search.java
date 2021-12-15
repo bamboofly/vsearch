@@ -3,6 +3,9 @@ package com.uan.vsearch;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.uan.vsearch.score.Scores;
+import com.uan.vsearch.score.Scoring;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;

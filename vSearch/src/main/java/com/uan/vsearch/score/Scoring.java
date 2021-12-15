@@ -1,6 +1,9 @@
-package com.uan.vsearch;
+package com.uan.vsearch.score;
 
 import android.util.Log;
+
+import com.uan.vsearch.Hit;
+import com.uan.vsearch.WordTarget;
 
 import java.util.ArrayList;
 import java.util.HashSet;
