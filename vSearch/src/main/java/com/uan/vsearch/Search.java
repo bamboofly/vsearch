@@ -3,6 +3,7 @@ package com.uan.vsearch;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.uan.vsearch.score.AdvanceScore;
 import com.uan.vsearch.score.Scores;
 import com.uan.vsearch.score.Scoring;
 
@@ -23,6 +24,8 @@ public class Search {
     private NearPinyinGraph mNearPinyinGraph;
 
     private final Scoring mScoring = new Scoring();
+
+    private final AdvanceScore mAdvanceScore = new AdvanceScore();
 
     public void init(Context context) {
         mPinyinStore = new PinyinStore();
@@ -75,7 +78,8 @@ public class Search {
 
         // 计算评分
         for (Scores hit : scoresList) {
-            mScoring.scoring(hit);
+//            mScoring.scoring(hit);
+            mAdvanceScore.scoring2(hit);
         }
 
         // 按评分降序

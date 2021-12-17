@@ -1,5 +1,7 @@
 package com.uan.vsearch.score;
 
+import android.util.Log;
+
 import com.uan.vsearch.Hit;
 import com.uan.vsearch.WordTarget;
 
@@ -59,6 +61,54 @@ public class AdvanceScore {
     private final static Target TARGET_HEAD = new Target(null, Integer.MIN_VALUE);
 
     private final static Target TARGET_TAIL = new Target(null, Integer.MAX_VALUE);
+
+    public void scoring2(Scores scores) {
+        LinkedList<Hit> hits = scores.hits;
+
+
+        float score = 0;
+        Hit first = hits.getFirst();
+        score -= first.vIndex;
+
+        Hit preHit = first;
+
+        int currentTargetIndex = -1;
+
+        int nameLength = scores.nameLength;
+        for (Hit hit : hits) {
+
+            int vIndexDistance = hit.vIndex - preHit.vIndex - 1;
+            if (vIndexDistance > 0) {
+                score -= vIndexDistance;
+            }
+
+            WordTarget target = hit.target;
+
+            int min = Integer.MAX_VALUE;
+            int minIndex = 0;
+            for (Integer i : target.getWordIndexList()) {
+
+                int d = Math.abs(currentTargetIndex - i);
+                if (d < min) {
+                    min = d;
+                    minIndex = i;
+                }
+            }
+            if (min <= 0) {
+                min = 1;
+            }
+            score += (1.0f / min) * hit.alike;
+
+            currentTargetIndex = minIndex;
+            preHit = hit;
+        }
+
+        score -= scores.searchLength - preHit.vIndex - 1;
+
+        scores.score = score /*/ scores.nameLength*/;
+//        Log.e("lianghuan", "score --- " + score);
+    }
+
 
 
     public void scoring(Scores scores) {
