@@ -4,11 +4,14 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.uan.vsearch.score.AdvanceScore;
+import com.uan.vsearch.score.IScore;
+import com.uan.vsearch.score.MarkDistanceScore;
 import com.uan.vsearch.score.Scores;
 import com.uan.vsearch.score.Scoring;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -23,7 +26,7 @@ public class Search {
 
     private NearPinyinGraph mNearPinyinGraph;
 
-    private final Scoring mScoring = new Scoring();
+    private final IScore mScoring = new MarkDistanceScore();
 
     private final AdvanceScore mAdvanceScore = new AdvanceScore();
 
@@ -52,6 +55,7 @@ public class Search {
 
             LinkedList<NearPinyin> nearPinyinList = mNearPinyinGraph.getNearPinyin(pingyin, dis);
 
+            HashSet<Integer> hashSet = new HashSet<>();
             for (NearPinyin nearPinyin : nearPinyinList) {
 
                 ArrayList<WordTarget> arrayList = mPingyinMap.get(nearPinyin.pinyin);
@@ -61,6 +65,11 @@ public class Search {
 
                 for (int j = 0; j < arrayList.size(); j++) {
                     WordTarget target = arrayList.get(j);
+                    if (hashSet.contains(target.nameIndex)) {
+                        continue;
+                    } else {
+                        hashSet.add(target.nameIndex);
+                    }
                     Scores scores = hashMap.get(target.nameIndex);
                     if (scores == null) {
                         scores = new Scores(target.nameIndex, target.nameLength, voice.length());
@@ -78,8 +87,8 @@ public class Search {
 
         // 计算评分
         for (Scores hit : scoresList) {
-//            mScoring.scoring(hit);
-            mAdvanceScore.scoring2(hit);
+            mScoring.scoring(hit);
+//            mAdvanceScore.scoring2(hit);
         }
 
         // 按评分降序

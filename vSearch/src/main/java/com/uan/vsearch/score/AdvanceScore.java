@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class AdvanceScore {
+public class AdvanceScore implements IScore {
 
 
     private static class Arrow {
