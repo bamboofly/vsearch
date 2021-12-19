@@ -3,15 +3,13 @@ package com.uan.vsearch;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.uan.vsearch.score.AdvanceScore;
-import com.uan.vsearch.score.IScore;
-import com.uan.vsearch.score.MarkDistanceScore;
+import com.uan.vsearch.score.AdvanceAlikeRater;
+import com.uan.vsearch.score.IAlikeRater;
+import com.uan.vsearch.score.MarkDistanceRater;
 import com.uan.vsearch.score.Scores;
-import com.uan.vsearch.score.Scoring;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -26,9 +24,9 @@ public class Search {
 
     private NearPinyinGraph mNearPinyinGraph;
 
-    private final IScore mScoring = new MarkDistanceScore();
+    private final IAlikeRater mScoring = new MarkDistanceRater();
 
-    private final AdvanceScore mAdvanceScore = new AdvanceScore();
+    private final AdvanceAlikeRater mAdvanceScore = new AdvanceAlikeRater();
 
     public void init(Context context) {
         mPinyinStore = new PinyinStore();

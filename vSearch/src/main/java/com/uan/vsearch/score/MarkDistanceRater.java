@@ -6,7 +6,7 @@ import com.uan.vsearch.WordTarget;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public class MarkDistanceScore implements IScore {
+public class MarkDistanceRater implements IAlikeRater {
 
     private static class Step {
         public final int wIndex;
@@ -34,7 +34,7 @@ public class MarkDistanceScore implements IScore {
 
     private final SNode mSNode;
 
-    public MarkDistanceScore() {
+    public MarkDistanceRater() {
         SNode s1 = new SNode();
         SNode s2 = new SNode();
         SNode s3 = new SNode();

@@ -1,7 +1,5 @@
 package com.uan.vsearch.score;
 
-import android.util.Log;
-
 import com.uan.vsearch.Hit;
 import com.uan.vsearch.WordTarget;
 
@@ -12,7 +10,7 @@ import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class AdvanceScore implements IScore {
+public class AdvanceAlikeRater implements IAlikeRater {
 
 
     private static class Arrow {

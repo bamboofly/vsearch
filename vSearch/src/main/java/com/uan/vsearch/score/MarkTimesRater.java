@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
-public class Scoring implements IScore {
+public class MarkTimesRater implements IAlikeRater {
     private static final String TAG = "Scoring";
 
     private final static float CONTINUE_ALL_POSITIVE_WEIGHTING = 1.5f;

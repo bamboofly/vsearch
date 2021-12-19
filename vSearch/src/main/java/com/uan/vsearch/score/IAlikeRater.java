@@ -1,6 +1,6 @@
 package com.uan.vsearch.score;
 
-public interface IScore {
+public interface IAlikeRater {
 
     void scoring(Scores scores);
 }
