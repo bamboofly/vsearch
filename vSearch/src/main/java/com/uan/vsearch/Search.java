@@ -39,6 +39,9 @@ public class Search {
     }
 
     public List<SearchResult> search(String voice, float dis) {
+//        voice.codePointAt()
+
+
         int length = voice.length();
 
         HashMap<Integer, Scores> hashMap = new HashMap<>();
@@ -55,7 +58,6 @@ public class Search {
 
             LinkedList<NearPinyin> nearPinyinList = mNearPinyinGraph.getNearPinyin(pingyin, dis);
 
-            HashSet<Integer> hashSet = new HashSet<>();
             for (NearPinyin nearPinyin : nearPinyinList) {
 
                 ArrayList<WordTarget> arrayList = mPingyinMap.get(nearPinyin.pinyin);
@@ -65,11 +67,6 @@ public class Search {
 
                 for (int j = 0; j < arrayList.size(); j++) {
                     WordTarget target = arrayList.get(j);
-                    if (hashSet.contains(target.nameIndex)) {
-                        continue;
-                    } else {
-                        hashSet.add(target.nameIndex);
-                    }
                     Scores scores = hashMap.get(target.nameIndex);
                     if (scores == null) {
                         scores = new Scores(target.nameIndex, target.nameLength, voice.length());
