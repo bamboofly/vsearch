@@ -3,10 +3,53 @@ package com.uan.vsearch.score;
 import com.uan.vsearch.Hit;
 import com.uan.vsearch.WordTarget;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 
 public class MarkDistanceRater implements IAlikeRater {
+
+    private static class MBitmap {
+
+
+        private final int[] array;
+
+        private final int capacity;
+
+        public int markSize;
+
+        public MBitmap(int capacity) {
+            this.capacity = capacity;
+            int size = capacity / 32 + 1;
+            array = new int[size];
+        }
+
+
+        public void mark(int index) {
+            if (index < 0 && index >= capacity) {
+                throw new RuntimeException("mark index out of range");
+            }
+
+            int intIndex = index / 32;
+            int offset = index % 32;
+
+            if (array[intIndex] >> offset == 0) {
+                array[intIndex] |= 1;
+                markSize++;
+            }
+        }
+
+        public MBitmap clone() {
+            MBitmap bitmap = new MBitmap(capacity);
+            int len = array.length;
+            int[] a = bitmap.array;
+            for (int i = 0; i < len; i++) {
+                a[i] = array[i];
+            }
+            bitmap.markSize = this.markSize;
+            return bitmap;
+        }
+    }
 
     private static class Step {
         public final int wIndex;
@@ -15,21 +58,29 @@ public class MarkDistanceRater implements IAlikeRater {
 
         public final float score;
 
-        public Step(int v, int w, float s) {
+        public final int wCount;
+
+        public final int vCount;
+
+        public Step(int v, int w, float s, int wc, int vc) {
             vIndex = v;
             wIndex = w;
             score = s;
+            wCount = wc;
+            vCount = vc;
         }
     }
 
     private static class SNode {
+        private static final int STEP_LIST_INIT_SIZE = 128;
+
         public SNode pre;
 
         public SNode next;
 
         public int vIndex;
 
-        public final LinkedList<Step> steps = new LinkedList<>();
+        public final ArrayList<Step> steps = new ArrayList<>(STEP_LIST_INIT_SIZE);
     }
 
     private final SNode mSNode;
@@ -51,17 +102,13 @@ public class MarkDistanceRater implements IAlikeRater {
     }
 
     private void resetSNodes(SNode sNode) {
-        SNode head = sNode;
-        head.steps.clear();
-        head.vIndex = 0;
+        SNode node = sNode;
+        for (int i = 0; i < 3; i++) {
+            node.steps.clear();
+            node.vIndex = -1;
 
-        head = head.next;
-        head.steps.clear();
-        head.vIndex = 0;
-
-        head = head.next;
-        head.steps.clear();
-        head.vIndex = 0;
+            node = node.next;
+        }
     }
 
     private void fullScore(Scores scores) {
@@ -109,7 +156,7 @@ public class MarkDistanceRater implements IAlikeRater {
             for (Integer i : target.getWordIndexList()) {
 
                 float maxStepScore = -1;
-                LinkedList<Step> steps = curNode.pre.steps;
+                ArrayList<Step> steps = curNode.pre.steps;
                 if (steps.size() > 0) {
                     for (Step step : steps) {
                         wForward = i - step.wIndex;
@@ -122,10 +169,9 @@ public class MarkDistanceRater implements IAlikeRater {
                             maxStepScore = s;
                         }
                     }
-                    hashSet.add(i);
-                    curNode.steps.add(new Step(hit.vIndex, i, maxStepScore));
+                    curNode.steps.add(new Step(hit.vIndex, i, maxStepScore, 0, 0));
                 } else {
-                    curNode.steps.add(new Step(hit.vIndex, i, hit.alike));
+                    curNode.steps.add(new Step(hit.vIndex, i, hit.alike, 0, 0));
                     hashSet.add(i);
                 }
             }
