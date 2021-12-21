@@ -26,25 +26,36 @@ public class MarkDistanceRater implements IAlikeRater {
 
 
         public void mark(int index) {
-            if (index < 0 && index >= capacity) {
+            if (index < 0 || index >= capacity) {
                 throw new RuntimeException("mark index out of range");
             }
 
             int intIndex = index / 32;
             int offset = index % 32;
 
-            if (array[intIndex] >> offset == 0) {
-                array[intIndex] |= 1;
+            if (((array[intIndex] >> offset) & 0x1) == 0) {
+                array[intIndex] |= (1 << offset);
                 markSize++;
             }
+        }
+
+        public boolean isMark(int index) {
+            if (index < 0 || index >= capacity) {
+                return false;
+            }
+
+            int intIndex = index / 32;
+            int offset = index % 32;
+
+            return ((array[intIndex] >> offset) & 0x1) != 0;
         }
 
         public MBitmap clone() {
             MBitmap bitmap = new MBitmap(capacity);
             int len = array.length;
-            int[] a = bitmap.array;
+//            int[] a = bitmap.array;
             for (int i = 0; i < len; i++) {
-                a[i] = array[i];
+                bitmap.array[i] = array[i];
             }
             bitmap.markSize = this.markSize;
             return bitmap;
@@ -58,16 +69,18 @@ public class MarkDistanceRater implements IAlikeRater {
 
         public final float score;
 
-        public final int wCount;
+        public final MBitmap wBitmap;
 
-        public final int vCount;
+        public final MBitmap vBitmap;
 
-        public Step(int v, int w, float s, int wc, int vc) {
+        public Step(int v, int w, float s, MBitmap wBitmap, MBitmap vBitmap) {
             vIndex = v;
             wIndex = w;
             score = s;
-            wCount = wc;
-            vCount = vc;
+            this.wBitmap = wBitmap;
+            this.vBitmap = vBitmap;
+            wBitmap.mark(w);
+            vBitmap.mark(v);
         }
     }
 
@@ -128,8 +141,6 @@ public class MarkDistanceRater implements IAlikeRater {
 
         int wForward = 0;
 
-
-        HashSet<Integer> hashSet = new HashSet<>();
         for (Hit hit : hits) {
 
             if (curNode.vIndex != hit.vIndex) {
@@ -141,8 +152,10 @@ public class MarkDistanceRater implements IAlikeRater {
                     float maxStepScore = 0;
                     Step maxStep = null;
                     for (Step step : curNode.pre.steps) {
-                        if (step.score > maxStepScore) {
-                            maxStepScore = step.score;
+                        float score = step.score * (((float) step.vBitmap.markSize / scores.searchLength)
+                                * ((float) step.wBitmap.markSize / scores.nameLength));
+                        if (score > maxStepScore) {
+                            maxStepScore = score;
                             maxStep = step;
                         }
                     }
@@ -158,6 +171,8 @@ public class MarkDistanceRater implements IAlikeRater {
                 float maxStepScore = -1;
                 ArrayList<Step> steps = curNode.pre.steps;
                 if (steps.size() > 0) {
+                    Step maxScoreStep = null;
+                    float maxFactorScore = 0;
                     for (Step step : steps) {
                         wForward = i - step.wIndex;
                         vForward = curNode.vIndex - step.vIndex;
@@ -165,28 +180,40 @@ public class MarkDistanceRater implements IAlikeRater {
 
                         float s = (1.0f / (1 + d)) * hit.alike;
                         s += step.score;
-                        if (s > maxStepScore) {
+
+                        float vHitCount = step.vBitmap.markSize + (step.vBitmap.isMark(hit.vIndex) ? 0 : 1);
+                        float wHitCount = step.wBitmap.markSize + (step.wBitmap.isMark(i) ? 0 : 1);
+                        float factorScore = s * ((vHitCount / scores.searchLength) * (wHitCount / scores.nameLength));
+                        if (factorScore > maxFactorScore) {
                             maxStepScore = s;
+                            maxScoreStep = step;
+                            maxFactorScore = factorScore;
                         }
                     }
-                    curNode.steps.add(new Step(hit.vIndex, i, maxStepScore, 0, 0));
+                    Step newStep = new Step(hit.vIndex, i, maxStepScore, maxScoreStep.wBitmap.clone(), maxScoreStep.vBitmap.clone());
+
+                    curNode.steps.add(newStep);
                 } else {
-                    curNode.steps.add(new Step(hit.vIndex, i, hit.alike, 0, 0));
-                    hashSet.add(i);
+                    MBitmap wBitmap = new MBitmap(scores.nameLength);
+                    MBitmap vBitmap = new MBitmap(scores.searchLength);
+
+                    curNode.steps.add(new Step(hit.vIndex, i, hit.alike, wBitmap, vBitmap));
                 }
             }
         }
 
         float maxScore = 0;
         for (Step step : curNode.steps) {
-            if (step.score > maxScore) {
-                maxScore = step.score;
+            float score = step.score * (((float) step.vBitmap.markSize / scores.searchLength)
+                    * ((float) step.wBitmap.markSize / scores.nameLength));
+            if (score > maxScore) {
+                maxScore = score;
             }
         }
 
-        float factor = (((float) hashSet.size()) / (scores.nameLength)) * (((float) hits.size()) / scores.searchLength);
+//        float factor = (((float) hashSet.size()) / (scores.nameLength)) * (((float) hits.size()) / scores.searchLength);
 
-        scores.score = maxScore * factor;
+        scores.score = maxScore;
     }
 
     @Override
