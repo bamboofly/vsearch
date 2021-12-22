@@ -152,7 +152,7 @@ public class MarkDistanceRater implements IAlikeRater {
                     float maxStepScore = 0;
                     Step maxStep = null;
                     for (Step step : curNode.pre.steps) {
-                        float score = step.score * (((float) step.vBitmap.markSize / scores.searchLength)
+                        float score = step.score * (((float) step.wBitmap.markSize / scores.searchLength)
                                 * ((float) step.wBitmap.markSize / scores.nameLength));
                         if (score > maxStepScore) {
                             maxStepScore = score;
@@ -178,12 +178,13 @@ public class MarkDistanceRater implements IAlikeRater {
                         vForward = curNode.vIndex - step.vIndex;
                         int d = Math.abs(vForward - wForward);
 
-                        float s = (1.0f / (1 + d)) * hit.alike;
+                        // 如果这个字已经被命中过，再次命中时需要降低这次命中的影响
+                        float s = (1.0f / (1 + d)) * hit.alike / (step.wBitmap.isMark(i) ? 2 : 1);
                         s += step.score;
 
                         float vHitCount = step.vBitmap.markSize + (step.vBitmap.isMark(hit.vIndex) ? 0 : 1);
                         float wHitCount = step.wBitmap.markSize + (step.wBitmap.isMark(i) ? 0 : 1);
-                        float factorScore = s * ((vHitCount / scores.searchLength) * (wHitCount / scores.nameLength));
+                        float factorScore = s * ((wHitCount / scores.searchLength) * (wHitCount / scores.nameLength));
                         if (factorScore > maxFactorScore) {
                             maxStepScore = s;
                             maxScoreStep = step;
@@ -204,7 +205,7 @@ public class MarkDistanceRater implements IAlikeRater {
 
         float maxScore = 0;
         for (Step step : curNode.steps) {
-            float score = step.score * (((float) step.vBitmap.markSize / scores.searchLength)
+            float score = step.score * (((float) step.wBitmap.markSize / scores.searchLength)
                     * ((float) step.wBitmap.markSize / scores.nameLength));
             if (score > maxScore) {
                 maxScore = score;
