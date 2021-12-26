@@ -19,6 +19,9 @@ public class NearPinyinGraph {
     private static final String NEAR_PINYIN_FILE_NAME = "pinyin-tone.txt";
     private static final String NEAR_SHENG_MU_FILE_NAME = "near-shengmu.txt";
 
+    public static final float FULL_ALIKE_SCORE = 1f;
+    public static final float PINYIN_ALIKE_SCORE = 0.95f;
+
     private static final String PINYIN_ZH = "zh";
     private static final String PINYIN_SH = "sh";
     private static final String PINYIN_CH = "ch";
@@ -46,7 +49,7 @@ public class NearPinyinGraph {
 
         while (queue.size() > 0) {
             WNode first = queue.removeFirst();
-            list.add(new NearPinyin(first.node.pinyin, 1 - first.distanceAll));
+            list.add(new NearPinyin(first.node.pinyin, PINYIN_ALIKE_SCORE - first.distanceAll));
 
             if (first.node.edgeSize() <= 0) {
                 continue;

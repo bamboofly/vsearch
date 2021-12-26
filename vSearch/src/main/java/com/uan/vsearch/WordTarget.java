@@ -3,13 +3,16 @@ package com.uan.vsearch;
 import java.util.LinkedList;
 
 public class WordTarget {
+    public final int unicode;
+
     public final int nameIndex;
 
     public final int nameLength;
 
     private LinkedList<Integer> wordIndexList = new LinkedList<>();
 
-    public WordTarget(int index, int length) {
+    public WordTarget(int u, int index, int length) {
+        unicode = u;
         nameIndex = index;
         nameLength = length;
     }

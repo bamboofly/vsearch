@@ -48,7 +48,8 @@ public class Search {
         int length = unicodeArray.length;
         for (int i = 0; i < length; i++) {
 
-            String pinyin = mPinyinStore.getPinyin(unicodeArray[i]);
+            int u = unicodeArray[i];
+            String pinyin = mPinyinStore.getPinyin(u);
             if (TextUtils.isEmpty(pinyin)) {
                 continue;
             }
@@ -71,7 +72,11 @@ public class Search {
                         scoresList.add(scores);
                     }
                     Hit hit = new Hit();
-                    hit.alike = nearPinyin.alike;
+                    if (target.unicode == u) {
+                        hit.alike = NearPinyinGraph.FULL_ALIKE_SCORE;
+                    } else {
+                        hit.alike = nearPinyin.alike;
+                    }
                     hit.vIndex = i;
                     hit.target = target;
                     scores.hits.addLast(hit);
@@ -98,7 +103,7 @@ public class Search {
 
         List<SearchResult> searchList;
         if (scoresList.size() > 7) {
-            searchList = new ArrayList<>();
+            searchList = new ArrayList<>(scoresList.size());
         } else {
             searchList = new LinkedList<>();
         }
@@ -129,18 +134,18 @@ public class Search {
         for (int j = 0; j < list.size(); j++) {
             String name = list.get(j);
 
-            int length = name.length();
+            int[] unicodeArray = name.codePoints().toArray();
+            int length = unicodeArray.length;
             HashMap<String, WordTarget> hashMap = new HashMap<>();
 
             for (int i = 0; i < length; i++) {
-                String zi = name.substring(i, i + 1);
-                int u = zi.charAt(0);
-                String pingyin = mPinyinStore.getPinyin(zi);
-                WordTarget target = hashMap.get(pingyin);
+                int u = unicodeArray[i];
+                String pinyin = mPinyinStore.getPinyin(u);
+                WordTarget target = hashMap.get(pinyin);
                 if (target == null) {
                     target = new WordTarget(u, j, length);
                     target.addIndex(i);
-                    hashMap.put(pingyin, target);
+                    hashMap.put(pinyin, target);
                 } else {
                     target.addIndex(i);
                 }
