@@ -65,13 +65,16 @@ public class PinyinStore {
             return "";
         }
 
-        char charAt = oneChinese.charAt(0);
-        int unicode = charAt;
+        int unicode = oneChinese.codePointAt(0);
 
+        return getPinyin(unicode);
+    }
+
+    public String getPinyin(int u) {
         for (PinyinBlock block : mBlockArray) {
-            boolean contained = block.contained(unicode);
+            boolean contained = block.contained(u);
             if (contained) {
-                return block.getPinyin(unicode);
+                return block.getPinyin(u);
             }
         }
 

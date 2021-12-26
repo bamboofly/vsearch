@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntConsumer;
 
 public class Search {
 
@@ -37,24 +38,22 @@ public class Search {
     }
 
     public List<SearchResult> search(String voice, float dis) {
-//        voice.codePointAt()
-
-
-        int length = voice.length();
 
         HashMap<Integer, Scores> hashMap = new HashMap<>();
         ArrayList<Scores> scoresList = new ArrayList<>();
 
         // 标记
-        for (int i = 0; i < length; i++) {
-            String zi = voice.substring(i, i + 1);
-            String pingyin = mPinyinStore.getPinyin(zi);
+        int[] unicodeArray = voice.codePoints().toArray();
 
-            if (TextUtils.isEmpty(pingyin)) {
+        int length = unicodeArray.length;
+        for (int i = 0; i < length; i++) {
+
+            String pinyin = mPinyinStore.getPinyin(unicodeArray[i]);
+            if (TextUtils.isEmpty(pinyin)) {
                 continue;
             }
 
-            LinkedList<NearPinyin> nearPinyinList = mNearPinyinGraph.getNearPinyin(pingyin, dis);
+            LinkedList<NearPinyin> nearPinyinList = mNearPinyinGraph.getNearPinyin(pinyin, dis);
 
             for (NearPinyin nearPinyin : nearPinyinList) {
 
@@ -78,6 +77,7 @@ public class Search {
                     scores.hits.addLast(hit);
                 }
             }
+
         }
 
         // 计算评分
@@ -134,10 +134,11 @@ public class Search {
 
             for (int i = 0; i < length; i++) {
                 String zi = name.substring(i, i + 1);
+                int u = zi.charAt(0);
                 String pingyin = mPinyinStore.getPinyin(zi);
                 WordTarget target = hashMap.get(pingyin);
                 if (target == null) {
-                    target = new WordTarget(j, length);
+                    target = new WordTarget(u, j, length);
                     target.addIndex(i);
                     hashMap.put(pingyin, target);
                 } else {
