@@ -132,10 +132,7 @@ public class MarkDistanceRater implements IAlikeRater {
         SNode curNode = mSNode;
         resetSNodes(curNode);
 
-
-        Hit first = hits.getFirst();
-
-        curNode.vIndex = first.vIndex;
+        curNode.vIndex = 0;
 
         int vForward = 0;
 
@@ -174,12 +171,16 @@ public class MarkDistanceRater implements IAlikeRater {
                     Step maxScoreStep = null;
                     float maxFactorScore = 0;
                     for (Step step : steps) {
+                        if (step.wBitmap.isMark(i)) {
+                            continue;
+                        }
                         wForward = i - step.wIndex;
                         vForward = curNode.vIndex - step.vIndex;
                         int d = Math.abs(vForward - wForward);
 
                         // 如果这个字已经被命中过，再次命中时需要降低这次命中的影响
-                        float s = (1.0f / (1 + d)) * hit.alike / (step.wBitmap.isMark(i) ? 2 : 1);
+                        // 2021/12/26修改，一个音只能命中一个字
+                        float s = (1.0f / (1 + d)) * hit.alike/* / (step.wBitmap.isMark(i) ? 2 : 1)*/;
                         s += step.score;
 
                         float vHitCount = step.vBitmap.markSize + (step.vBitmap.isMark(hit.vIndex) ? 0 : 1);
@@ -191,14 +192,21 @@ public class MarkDistanceRater implements IAlikeRater {
                             maxFactorScore = factorScore;
                         }
                     }
-                    Step newStep = new Step(hit.vIndex, i, maxStepScore, maxScoreStep.wBitmap.clone(), maxScoreStep.vBitmap.clone());
+                    Step newStep;
+                    if (maxScoreStep != null) {
+                        newStep = new Step(hit.vIndex, i, maxStepScore, maxScoreStep.wBitmap.clone(), maxScoreStep.vBitmap.clone());
+                        curNode.steps.add(newStep);
+                    }
 
-                    curNode.steps.add(newStep);
                 } else {
                     MBitmap wBitmap = new MBitmap(scores.nameLength);
                     MBitmap vBitmap = new MBitmap(scores.searchLength);
 
-                    curNode.steps.add(new Step(hit.vIndex, i, hit.alike, wBitmap, vBitmap));
+                    wForward = i;
+                    vForward = curNode.vIndex;
+                    int d = Math.abs(vForward - wForward);
+                    float s = (1.0f / (1 + d)) * hit.alike;
+                    curNode.steps.add(new Step(hit.vIndex, i, s, wBitmap, vBitmap));
                 }
             }
         }
