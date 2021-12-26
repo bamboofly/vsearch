@@ -6,6 +6,7 @@ import com.uan.vsearch.WordTarget;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 
 public class MarkDistanceRater implements IAlikeRater {
 
@@ -82,6 +83,14 @@ public class MarkDistanceRater implements IAlikeRater {
             wBitmap.mark(w);
             vBitmap.mark(v);
         }
+
+        public Step(int wLen, int vLen) {
+            vIndex = 0;
+            wIndex = 0;
+            score = 0;
+            wBitmap = new MBitmap(wLen);
+            vBitmap = new MBitmap(vLen);
+        }
     }
 
     private static class SNode {
@@ -126,17 +135,21 @@ public class MarkDistanceRater implements IAlikeRater {
 
     private void fullScore(Scores scores) {
 
-
         LinkedList<Hit> hits = scores.hits;
 
         SNode curNode = mSNode;
         resetSNodes(curNode);
 
-        curNode.vIndex = 0;
 
-        int vForward = 0;
+        int nameLength = scores.nameLength;
 
-        int wForward = 0;
+        int inputLength = scores.searchLength;
+
+        curNode.vIndex = hits.getFirst().vIndex;
+
+        curNode.pre.steps.add(
+                new Step(nameLength,
+                        inputLength));
 
         for (Hit hit : hits) {
 
@@ -145,84 +158,84 @@ public class MarkDistanceRater implements IAlikeRater {
                 curNode.steps.clear();
                 curNode.vIndex = hit.vIndex;
 
-                if (curNode.pre.steps.size() > 0) {
-                    float maxStepScore = 0;
-                    Step maxStep = null;
-                    for (Step step : curNode.pre.steps) {
-                        float score = step.score * (((float) step.wBitmap.markSize / scores.searchLength)
-                                * ((float) step.wBitmap.markSize / scores.nameLength));
-                        if (score > maxStepScore) {
-                            maxStepScore = score;
-                            maxStep = step;
-                        }
-                    }
-                    if (maxStep != null) {
-                        curNode.steps.add(maxStep);
-                    }
+                List<Step> preNodeSteps = curNode.pre.steps;
+                Step maxStep = findMaxScoreStep(preNodeSteps, inputLength, nameLength);
+                if (maxStep != null) {
+                    curNode.steps.add(maxStep);
                 }
             }
 
             WordTarget target = hit.target;
             for (Integer i : target.getWordIndexList()) {
 
-                float maxStepScore = -1;
+                float maxStepScore = 0;
                 ArrayList<Step> steps = curNode.pre.steps;
-                if (steps.size() > 0) {
-                    Step maxScoreStep = null;
-                    float maxFactorScore = 0;
-                    for (Step step : steps) {
-                        if (step.wBitmap.isMark(i)) {
-                            continue;
-                        }
-                        wForward = i - step.wIndex;
-                        vForward = curNode.vIndex - step.vIndex;
-                        int d = Math.abs(vForward - wForward);
 
-                        // 如果这个字已经被命中过，再次命中时需要降低这次命中的影响
-                        // 2021/12/26修改，一个音只能命中一个字
-                        float s = (1.0f / (1 + d)) * hit.alike/* / (step.wBitmap.isMark(i) ? 2 : 1)*/;
-                        s += step.score;
-
-                        float vHitCount = step.vBitmap.markSize + (step.vBitmap.isMark(hit.vIndex) ? 0 : 1);
-                        float wHitCount = step.wBitmap.markSize + (step.wBitmap.isMark(i) ? 0 : 1);
-                        float factorScore = s * ((wHitCount / scores.searchLength) * (wHitCount / scores.nameLength));
-                        if (factorScore > maxFactorScore) {
-                            maxStepScore = s;
-                            maxScoreStep = step;
-                            maxFactorScore = factorScore;
-                        }
-                    }
-                    Step newStep;
-                    if (maxScoreStep != null) {
-                        newStep = new Step(hit.vIndex, i, maxStepScore, maxScoreStep.wBitmap.clone(), maxScoreStep.vBitmap.clone());
-                        curNode.steps.add(newStep);
+                Step maxScoreStep = null;
+                float maxFactorScore = Float.MIN_VALUE;
+                for (Step step : steps) {
+                    // 被匹配字已经被命中过，不再给加分
+                    if (step.wBitmap.isMark(i)) {
+                        continue;
                     }
 
-                } else {
-                    MBitmap wBitmap = new MBitmap(scores.nameLength);
-                    MBitmap vBitmap = new MBitmap(scores.searchLength);
-
-                    wForward = i;
-                    vForward = curNode.vIndex;
+                    int wForward = i - step.wIndex;
+                    int vForward = curNode.vIndex - step.vIndex;
                     int d = Math.abs(vForward - wForward);
-                    float s = (1.0f / (1 + d)) * hit.alike;
-                    curNode.steps.add(new Step(hit.vIndex, i, s, wBitmap, vBitmap));
+
+                    // 如果这个字已经被命中过，再次命中时需要降低这次命中的影响
+                    // 2021/12/26修改，一个音只能命中一个字
+                    float s = (1.0f / (1 + d)) * hit.alike/* / (step.wBitmap.isMark(i) ? 2 : 1)*/;
+                    s += step.score;
+
+//                        float vHitCount = step.vBitmap.markSize + (step.vBitmap.isMark(hit.vIndex) ? 0 : 1);
+                    float wHitCount = step.wBitmap.markSize + 1/*(step.wBitmap.isMark(i) ? 0 : 1)*/;
+                    float factorScore = s * ((wHitCount / inputLength) * (wHitCount / nameLength));
+                    if (factorScore > maxFactorScore) {
+                        maxStepScore = s;
+                        maxScoreStep = step;
+                        maxFactorScore = factorScore;
+                    }
+                }
+
+                if (maxScoreStep != null) {
+                    curNode.steps.add(
+                            new Step(hit.vIndex,
+                                    i,
+                                    maxStepScore,
+                                    maxScoreStep.wBitmap.clone(),
+                                    maxScoreStep.vBitmap.clone()));
                 }
             }
         }
 
-        float maxScore = 0;
-        for (Step step : curNode.steps) {
-            float score = step.score * (((float) step.wBitmap.markSize / scores.searchLength)
-                    * ((float) step.wBitmap.markSize / scores.nameLength));
+        scores.score = findMaxScore(curNode.steps, nameLength, inputLength);
+    }
+
+    private float findMaxScore(List<Step> steps, int nl, int il) {
+        float maxScore = Float.MIN_VALUE;
+        for (Step step : steps) {
+            float score = step.score * (((float) step.wBitmap.markSize / il)
+                    * ((float) step.wBitmap.markSize / nl));
             if (score > maxScore) {
                 maxScore = score;
             }
         }
+        return maxScore;
+    }
 
-//        float factor = (((float) hashSet.size()) / (scores.nameLength)) * (((float) hits.size()) / scores.searchLength);
-
-        scores.score = maxScore;
+    private Step findMaxScoreStep(List<Step> steps, int nl, int il) {
+        float maxStepScore = Float.MIN_VALUE;
+        Step maxStep = null;
+        for (Step step : steps) {
+            float score = step.score * (((float) step.wBitmap.markSize / il)
+                    * ((float) step.wBitmap.markSize / nl));
+            if (score > maxStepScore) {
+                maxStepScore = score;
+                maxStep = step;
+            }
+        }
+        return maxStep;
     }
 
     @Override
