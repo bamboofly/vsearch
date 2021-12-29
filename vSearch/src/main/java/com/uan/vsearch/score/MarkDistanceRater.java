@@ -1,5 +1,7 @@
 package com.uan.vsearch.score;
 
+import android.util.Log;
+
 import com.uan.vsearch.Hit;
 import com.uan.vsearch.WordTarget;
 
@@ -28,7 +30,7 @@ public class MarkDistanceRater implements IAlikeRater {
 
         public void mark(int index) {
             if (index < 0 || index >= capacity) {
-                throw new RuntimeException("mark index out of range");
+                throw new RuntimeException("mark index out of range capacity " + capacity + ", index " + index);
             }
 
             int intIndex = index / 32;
@@ -131,6 +133,99 @@ public class MarkDistanceRater implements IAlikeRater {
 
             node = node.next;
         }
+    }
+
+
+    private void advanceScore(Scores scores) {
+
+        LinkedList<Hit> hits = scores.hits;
+
+        int inputLength = scores.searchLength;
+        int nameLength = scores.nameLength;
+
+        if (inputLength > 256) {
+            return;
+        }
+
+        int[] markArray = new int[inputLength];
+
+        for(int i = 0; i < inputLength; i++) {
+            markArray[i] = -1;
+        }
+
+        float sumScore = 0;
+        MBitmap wMarkBitmap = new MBitmap(nameLength);
+
+        float maxScore = 0;
+        int maxWIndex = -1;
+
+        int preVIndex = 0;
+
+        for (Hit hit : hits) {
+            int vIndex = hit.vIndex;
+            if (preVIndex != vIndex) {
+                sumScore += maxScore;
+                markArray[preVIndex] = maxWIndex;
+                if (maxWIndex >= 0) {
+                    wMarkBitmap.mark(maxWIndex);
+                }
+
+                maxScore = 0;
+                maxWIndex = -1;
+            }
+
+            WordTarget wordTarget = hit.target;
+            LinkedList<Integer> wordIndexList = wordTarget.getWordIndexList();
+
+            for (Integer wIndex : wordIndexList) {
+
+                int startVIndex = 0;
+                int startWIndex = 0;
+                for (int i = vIndex - 1; i >= 0; i--) {
+                    if (markArray[i] < 0) {
+                        continue;
+                    }
+
+                    if (markArray[i] >= wIndex) {
+                        continue;
+                    }
+
+                    startVIndex = i;
+                    startWIndex = markArray[i];
+                }
+
+                int wForward = wIndex - startWIndex;
+                int vForward = vIndex - startVIndex;
+                int d = Math.abs(vForward - wForward);
+
+                int d2 = (wForward == 1 && wForward == vForward) ? 5 : (5 + wForward + vForward);
+
+                float s = (2.0f / (2 + d)) * hit.alike * (5.f / (d2));
+
+                if (s > maxScore) {
+                    maxScore = s;
+                    maxWIndex = wIndex;
+                } else if (s == maxScore && !wMarkBitmap.isMark(wIndex)) {
+                    maxScore = s;
+                    maxWIndex = wIndex;
+                }
+            }
+
+            preVIndex = vIndex;
+
+        }
+
+        if (maxWIndex >= 0) {
+            sumScore += maxScore;
+//            markArray[vIndex] = maxWIndex;
+            wMarkBitmap.mark(maxWIndex);
+        }
+
+        int unMarkSize = (nameLength - wMarkBitmap.markSize);
+
+        float finalScore = (sumScore / inputLength) * wMarkBitmap.markSize - (0.5f - (1f / (2 + unMarkSize)))/* / nameLength*/;
+
+        scores.score = finalScore;
     }
 
     private void fullScore(Scores scores) {
@@ -241,7 +336,8 @@ public class MarkDistanceRater implements IAlikeRater {
     @Override
     public void scoring(Scores scores) {
 //        simpleScore(scores);
-        fullScore(scores);
+//        fullScore(scores);
+        advanceScore(scores);
     }
 
     private void simpleScore(Scores scores) {
