@@ -1,7 +1,5 @@
 package com.uan.vsearch.score;
 
-import android.util.Log;
-
 import com.uan.vsearch.Hit;
 import com.uan.vsearch.WordTarget;
 
@@ -11,6 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class MarkDistanceRater implements IAlikeRater {
+
+    /**
+     * 最大搜索输入字符数
+     */
+    public static final int MAX_INPUT = 256;
 
     private static class MBitmap {
 
@@ -56,7 +59,6 @@ public class MarkDistanceRater implements IAlikeRater {
         public MBitmap clone() {
             MBitmap bitmap = new MBitmap(capacity);
             int len = array.length;
-//            int[] a = bitmap.array;
             for (int i = 0; i < len; i++) {
                 bitmap.array[i] = array[i];
             }
@@ -107,6 +109,49 @@ public class MarkDistanceRater implements IAlikeRater {
         public final ArrayList<Step> steps = new ArrayList<>(STEP_LIST_INIT_SIZE);
     }
 
+    private static class MarkStack {
+        private final int[] mMarArray;
+
+        private int mTop;
+
+        public MarkStack(int size) {
+            mMarArray = new int[(size + 1) * 2];
+            clear();
+        }
+
+        public void clear() {
+            mMarArray[0] = -1;
+            mMarArray[1] = -1;
+            mTop = 0;
+        }
+
+        public int find(int wIndex) {
+
+            int i = mTop;
+            for (; i >= 0; i -= 2) {
+                if (mMarArray[i + 1] < wIndex) {
+                    break;
+                }
+            }
+
+            return i;
+        }
+
+        public void put(int vIndex, int wIndex) {
+            mTop += 2;
+            mMarArray[mTop] = vIndex;
+            mMarArray[mTop + 1] = wIndex;
+        }
+
+        public int getV(int index) {
+            return mMarArray[index];
+        }
+
+        public int getW(int index) {
+            return mMarArray[index + 1];
+        }
+    }
+
     private final SNode mSNode;
 
     public MarkDistanceRater() {
@@ -135,6 +180,7 @@ public class MarkDistanceRater implements IAlikeRater {
         }
     }
 
+    private final MarkStack mMarkStack = new MarkStack(256);
 
     private void advanceScore(Scores scores) {
 
@@ -147,11 +193,7 @@ public class MarkDistanceRater implements IAlikeRater {
             return;
         }
 
-        int[] markArray = new int[inputLength];
-
-        for(int i = 0; i < inputLength; i++) {
-            markArray[i] = -1;
-        }
+        mMarkStack.clear();
 
         float sumScore = 0;
         MBitmap wMarkBitmap = new MBitmap(nameLength);
@@ -165,8 +207,9 @@ public class MarkDistanceRater implements IAlikeRater {
             int vIndex = hit.vIndex;
             if (preVIndex != vIndex) {
                 sumScore += maxScore;
-                markArray[preVIndex] = maxWIndex;
+
                 if (maxWIndex >= 0) {
+                    mMarkStack.put(preVIndex, maxWIndex);
                     wMarkBitmap.mark(maxWIndex);
                 }
 
@@ -179,20 +222,9 @@ public class MarkDistanceRater implements IAlikeRater {
 
             for (Integer wIndex : wordIndexList) {
 
-                int startVIndex = 0;
-                int startWIndex = 0;
-                for (int i = vIndex - 1; i >= 0; i--) {
-                    if (markArray[i] < 0) {
-                        continue;
-                    }
-
-                    if (markArray[i] >= wIndex) {
-                        continue;
-                    }
-
-                    startVIndex = i;
-                    startWIndex = markArray[i];
-                }
+                int findIndex = mMarkStack.find(wIndex);
+                int startVIndex = mMarkStack.getV(findIndex);
+                int startWIndex = mMarkStack.getW(findIndex);
 
                 int wForward = wIndex - startWIndex;
                 int vForward = vIndex - startVIndex;
@@ -217,7 +249,6 @@ public class MarkDistanceRater implements IAlikeRater {
 
         if (maxWIndex >= 0) {
             sumScore += maxScore;
-//            markArray[vIndex] = maxWIndex;
             wMarkBitmap.mark(maxWIndex);
         }
 
