@@ -24,6 +24,8 @@ public class PinyinStore {
 
     private final HashMap<String, String> mPinyinToneMap = new HashMap<>();
 
+    private final PinyinIndex mPinyinIndex = new PinyinIndex();
+
     public PinyinStore() {
         buildToneMap();
     }
@@ -74,11 +76,22 @@ public class PinyinStore {
         for (PinyinBlock block : mBlockArray) {
             boolean contained = block.contained(u);
             if (contained) {
-                return block.getPinyin(u);
+                return mPinyinIndex.getPinyinByIndex(block.getPinyinIndex(u));
             }
         }
 
         return "";
+    }
+
+    public int getPinyinIndex(int u) {
+        for (PinyinBlock block : mBlockArray) {
+            boolean contained = block.contained(u);
+            if (contained) {
+                return block.getPinyinIndex(u);
+            }
+        }
+
+        return -1;
     }
 
     public void buildPinyin(Context context) {
@@ -159,7 +172,7 @@ public class PinyinStore {
 
         int arrayLength = endUnicode - startUnicode + 1;
         Log.i(TAG, "build pinyin block array length " + arrayLength);
-        String[] pinyinArray = new String[arrayLength];
+        int[] pinyinArray = new int[arrayLength];
 
         for (String line : lineList) {
             String[] lineArray = line.split(" +");
@@ -176,7 +189,7 @@ public class PinyinStore {
             pinyin = replaceTone(pinyin);
 
             int index = unicode - startUnicode;
-            pinyinArray[index] = pinyin;
+            pinyinArray[index] = mPinyinIndex.addPinyinIndex(pinyin);
         }
 
         PinyinBlock block = new PinyinBlock(startUnicode, endUnicode, pinyinArray);
