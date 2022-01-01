@@ -13,12 +13,12 @@ public class MarkDistanceRater implements IAlikeRater {
     public static final int MAX_INPUT = 256;
 
 
-    private static class MarkStack {
+    private static class HistoryStack {
         private final int[] mMarArray;
 
         private int mTop;
 
-        public MarkStack(int size) {
+        public HistoryStack(int size) {
             mMarArray = new int[(size + 1) * 2];
             clear();
         }
@@ -56,7 +56,7 @@ public class MarkDistanceRater implements IAlikeRater {
         }
     }
 
-    private final MarkStack mMarkStack = new MarkStack(MAX_INPUT);
+    private final HistoryStack mHistoryStack = new HistoryStack(MAX_INPUT);
 
     private void advanceScore(Scores scores) {
 
@@ -65,11 +65,11 @@ public class MarkDistanceRater implements IAlikeRater {
         int inputLength = scores.searchLength;
         int nameLength = scores.nameLength;
 
-        if (inputLength > 256) {
+        if (inputLength > MAX_INPUT) {
             return;
         }
 
-        mMarkStack.clear();
+        mHistoryStack.clear();
 
         float sumScore = 0;
         MBitmap wMarkBitmap = new MBitmap(nameLength);
@@ -85,7 +85,7 @@ public class MarkDistanceRater implements IAlikeRater {
                 sumScore += maxScore;
 
                 if (maxWIndex >= 0) {
-                    mMarkStack.put(preVIndex, maxWIndex);
+                    mHistoryStack.put(preVIndex, maxWIndex);
                     wMarkBitmap.mark(maxWIndex);
                 }
 
@@ -98,9 +98,9 @@ public class MarkDistanceRater implements IAlikeRater {
 
             for (Integer wIndex : wordIndexList) {
 
-                int findIndex = mMarkStack.find(wIndex);
-                int startVIndex = mMarkStack.getV(findIndex);
-                int startWIndex = mMarkStack.getW(findIndex);
+                int findIndex = mHistoryStack.find(wIndex);
+                int startVIndex = mHistoryStack.getV(findIndex);
+                int startWIndex = mHistoryStack.getW(findIndex);
 
                 int wForward = wIndex - startWIndex;
                 int vForward = vIndex - startVIndex;

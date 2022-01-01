@@ -1,4 +1,4 @@
-package com.uan.vsearch;
+package com.uan.vsearch.pinyin;
 
 public class NearPinyin {
 

@@ -1,9 +1,10 @@
 package com.uan.vsearch;
 
-import android.content.Context;
 import android.text.TextUtils;
 
-import com.uan.vsearch.score.AdvanceAlikeRater;
+import com.uan.vsearch.pinyin.NearPinyin;
+import com.uan.vsearch.pinyin.NearPinyinGraph;
+import com.uan.vsearch.pinyin.PinyinStore;
 import com.uan.vsearch.score.IAlikeRater;
 import com.uan.vsearch.score.MarkDistanceRater;
 import com.uan.vsearch.score.Scores;
@@ -12,31 +13,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 public class Search {
 
-    private ArrayList<String> mSearchSource = new ArrayList<>();
+    private final PinyinStore mPinyinStore;
 
-    private HashMap<String, ArrayList<WordTarget>> mPingyinMap = new HashMap<>();
-
-    private PinyinStore mPinyinStore;
-
-    private NearPinyinGraph mNearPinyinGraph;
+    private final NearPinyinGraph mNearPinyinGraph;
 
     private final IAlikeRater mScoring = new MarkDistanceRater();
 
-    private final AdvanceAlikeRater mAdvanceScore = new AdvanceAlikeRater();
+    public Search(PinyinStore pinyinStore, NearPinyinGraph nearPinyinGraph) {
+        mPinyinStore = pinyinStore;
 
-    public void init(Context context) {
-        mPinyinStore = new PinyinStore();
-        mPinyinStore.buildPinyin(context);
-
-        mNearPinyinGraph = new NearPinyinGraph();
-        mNearPinyinGraph.buildPinyinGraph(context);
+        mNearPinyinGraph = nearPinyinGraph;
     }
 
-    public List<SearchResult> search(String voice, float dis) {
+    public List<SearchResult> search(StringMap stringMap, String voice, float dis) {
 
         HashMap<Integer, Scores> hashMap = new HashMap<>();
         ArrayList<Scores> scoresList = new ArrayList<>();
@@ -57,7 +49,7 @@ public class Search {
 
             for (NearPinyin nearPinyin : nearPinyinList) {
 
-                ArrayList<WordTarget> arrayList = mPingyinMap.get(nearPinyin.pinyin);
+                ArrayList<WordTarget> arrayList = stringMap.getTargetList(nearPinyin.pinyin);
                 if (arrayList == null) {
                     continue;
                 }
@@ -109,60 +101,11 @@ public class Search {
 
         for (int i = 0; i < scoresList.size(); i++) {
             Scores scores = scoresList.get(i);
-            String s = mSearchSource.get(scores.index);
+            String s = stringMap.getSourceString(scores.index);
             searchList.add(new SearchResult(s, scores.index, scores.score));
         }
 
         return searchList;
-    }
-
-
-    public void addSearchSource(List<String> list) {
-        if (list == null) {
-            return;
-        }
-
-        mSearchSource.addAll(list);
-
-        mPingyinMap = buildMap(mSearchSource);
-    }
-
-    private HashMap<String, ArrayList<WordTarget>> buildMap(ArrayList<String> list) {
-        HashMap<String, ArrayList<WordTarget>> pinyinMap = new HashMap<>();
-
-        for (int j = 0; j < list.size(); j++) {
-            String name = list.get(j);
-
-            int[] unicodeArray = name.codePoints().toArray();
-            int length = unicodeArray.length;
-            HashMap<String, WordTarget> hashMap = new HashMap<>();
-
-            for (int i = 0; i < length; i++) {
-                int u = unicodeArray[i];
-                String pinyin = mPinyinStore.getPinyin(u);
-                WordTarget target = hashMap.get(pinyin);
-                if (target == null) {
-                    target = new WordTarget(u, j, length);
-                    target.addIndex(i);
-                    hashMap.put(pinyin, target);
-                } else {
-                    target.addIndex(i);
-                }
-            }
-
-            Set<String> keySet = hashMap.keySet();
-            for (String next : keySet) {
-                WordTarget target = hashMap.get(next);
-                ArrayList<WordTarget> arrayList = pinyinMap.get(next);
-                if (arrayList == null) {
-                    arrayList = new ArrayList<>();
-                    pinyinMap.put(next, arrayList);
-                }
-                arrayList.add(target);
-            }
-        }
-
-        return pinyinMap;
     }
 
 
