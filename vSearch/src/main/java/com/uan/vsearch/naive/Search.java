@@ -1,13 +1,16 @@
-package com.uan.vsearch;
+package com.uan.vsearch.naive;
 
 import android.text.TextUtils;
 
+import com.uan.vsearch.SearchResult;
+import com.uan.vsearch.participle.StringMap;
+import com.uan.vsearch.participle.WordTarget;
 import com.uan.vsearch.pinyin.NearPinyin;
 import com.uan.vsearch.pinyin.NearPinyinGraph;
 import com.uan.vsearch.pinyin.PinyinStore;
-import com.uan.vsearch.score.IAlikeRater;
-import com.uan.vsearch.score.MarkDistanceRater;
-import com.uan.vsearch.score.Scores;
+import com.uan.vsearch.naive.score.IAlikeRater;
+import com.uan.vsearch.naive.score.MarkTimesRater;
+import com.uan.vsearch.naive.score.Scores;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +23,7 @@ public class Search {
 
     private final NearPinyinGraph mNearPinyinGraph;
 
-    private final IAlikeRater mScoring = new MarkDistanceRater();
+    private final IAlikeRater mScoring = new MarkTimesRater();
 
     public Search(PinyinStore pinyinStore, NearPinyinGraph nearPinyinGraph) {
         mPinyinStore = pinyinStore;

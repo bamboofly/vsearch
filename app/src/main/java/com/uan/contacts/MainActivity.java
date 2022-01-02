@@ -5,10 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.uan.vsearch.ContactsData;
-import com.uan.vsearch.LineReader;
-import com.uan.vsearch.Search;
+import com.uan.vsearch.participle.StringMap;
+import com.uan.vsearch.pinyin.LineReader;
+import com.uan.vsearch.naive.Search;
 import com.uan.vsearch.SearchResult;
+import com.uan.vsearch.pinyin.NearPinyinGraph;
+import com.uan.vsearch.pinyin.PinyinStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
         int i6 = charAt6;
         Log.e("lianghuan", "charAt6 " + Integer.toHexString(i6));
 
+        String s7 = "\uD874\uDC16";
+        int i77 = s2.codePointAt(0);
+        Log.e("lianghuan", "codePointAt i7 = " + Integer.toHexString(i77));
+
         String a1 = "zhao";
         String a2 = "zha1o";
         String a3 = "zha2o";
@@ -78,9 +84,14 @@ public class MainActivity extends AppCompatActivity {
 //        for (NearPinyin n : zhao) {
 //            Log.e("lianghuan", "pinyin " + n.pinyin + ", alike " + n.alike);
 //        }
+        PinyinStore pinyinStore = new PinyinStore();
+        pinyinStore.buildPinyin(this);
+        NearPinyinGraph nearPinyinGraph = new NearPinyinGraph();
+        nearPinyinGraph.buildPinyinGraph(this);
 
-        Search search = new Search();
-        search.init(this);
+        Search search = new Search(pinyinStore, nearPinyinGraph);
+
+        StringMap stringMap = new StringMap(pinyinStore);
 
         ArrayList<String> contactsDataArrayList = new ArrayList<>();
         contactsDataArrayList.add("梁欢");
@@ -96,25 +107,51 @@ public class MainActivity extends AppCompatActivity {
         contactsDataArrayList.add("小日子");
         contactsDataArrayList.add("岗头村委");
         contactsDataArrayList.add("自己人");
-//        contactsDataArrayList.add("刘溪");
+        contactsDataArrayList.add("刘一");
         contactsDataArrayList.add("陈吉科");
-        contactsDataArrayList.add("岑陈科");
-        contactsDataArrayList.add("欢欢嘻嘻");
+        contactsDataArrayList.add("刘斯宁");
+        contactsDataArrayList.add("喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻");
         contactsDataArrayList.add("黄芸欢");
-        contactsDataArrayList.add("王欢欢");
+//        contactsDataArrayList.add("王欢欢");
+        contactsDataArrayList.add("欢欢嘻嘻");
+        contactsDataArrayList.add("124453");
+        contactsDataArrayList.add("12153");
         new LineReader(getAssets(), "contacts.txt").eachLine(l -> {
             contactsDataArrayList.add(l.trim());
         });
-        search.addSearchSource(contactsDataArrayList);
+        stringMap.put(contactsDataArrayList);
 
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int i = 0; i < 1000000; i++) {
+//
+//                    Log.i("lianghuan", "search start");
+//                    long start = System.currentTimeMillis();
+//
+////                    List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+//                    List<SearchResult> list = search.search("欢欢北京", 0.3f);
+//                    long end = System.currentTimeMillis();
+//                    Log.i("lianghuan", "search end, cost time " + (end - start));
+//                    try {
+//                        Thread.sleep(50);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }).start();
         Log.i("lianghuan", "search start");
         long start = System.currentTimeMillis();
-//        List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-        List<SearchResult> list = search.search("欢欢嘻嘻", 0.3f);
+
+//        List<SearchResult> list = search.search("1254647453986", 0.3f);
+        List<SearchResult> list = search.search(stringMap, "欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+//        List<SearchResult> list = search.search("王欢欢", 0.3f);
+//        List<SearchResult> list = search.search("12453", 0.3f);
         long end = System.currentTimeMillis();
         Log.i("lianghuan", "search end, cost time " + (end - start));
         for (SearchResult data : list) {
-            if (data.getScore() < -5) {
+            if (data.getScore() < 0.05) {
                 continue;
             }
             Log.e("lianghuan", "name " + data.getString() + ", --score " + data.getScore());

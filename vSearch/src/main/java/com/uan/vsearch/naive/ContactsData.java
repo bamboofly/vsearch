@@ -1,4 +1,4 @@
-package com.uan.vsearch;
+package com.uan.vsearch.naive;
 
 public class ContactsData {
 

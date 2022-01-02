@@ -1,7 +1,7 @@
-package com.uan.vsearch.score;
+package com.uan.vsearch.naive.score;
 
-import com.uan.vsearch.Hit;
-import com.uan.vsearch.WordTarget;
+import com.uan.vsearch.naive.Hit;
+import com.uan.vsearch.participle.WordTarget;
 
 import java.util.ArrayList;
 import java.util.Collection;

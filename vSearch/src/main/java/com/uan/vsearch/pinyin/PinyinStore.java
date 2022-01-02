@@ -94,6 +94,10 @@ public class PinyinStore {
         return -1;
     }
 
+    public int getPinyinIndex(String pinyin) {
+        return mPinyinIndex.getPinyinIndex(pinyin);
+    }
+
     public void buildPinyin(Context context) {
         AssetManager assets = context.getAssets();
         InputStream inputStream = null;

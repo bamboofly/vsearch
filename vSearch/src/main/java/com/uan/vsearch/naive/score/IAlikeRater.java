@@ -1,4 +1,4 @@
-package com.uan.vsearch.score;
+package com.uan.vsearch.naive.score;
 
 public interface IAlikeRater {
 

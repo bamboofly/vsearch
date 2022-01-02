@@ -1,4 +1,6 @@
-package com.uan.vsearch;
+package com.uan.vsearch.naive;
+
+import com.uan.vsearch.participle.WordTarget;
 
 public class Hit {
 
