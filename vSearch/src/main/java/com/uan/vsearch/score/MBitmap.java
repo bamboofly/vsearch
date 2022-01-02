@@ -1,5 +1,8 @@
 package com.uan.vsearch.score;
 
+/**
+ * 标记位图
+ */
 public class MBitmap {
 
     private final int[] array;
@@ -14,7 +17,11 @@ public class MBitmap {
         array = new int[size];
     }
 
-
+    /**
+     * 标记对应索引值
+     *
+     * @param index 索引值
+     */
     public void mark(int index) {
         if (index < 0 || index >= capacity) {
             throw new RuntimeException("mark index out of range capacity " + capacity + ", index " + index);
@@ -29,6 +36,12 @@ public class MBitmap {
         }
     }
 
+    /**
+     * 对应索引是否被标记过
+     *
+     * @param index 索引值
+     * @return true 已经标记过， false 没有标记过
+     */
     public boolean isMark(int index) {
         if (index < 0 || index >= capacity) {
             return false;
@@ -40,6 +53,11 @@ public class MBitmap {
         return ((array[intIndex] >> offset) & 0x1) != 0;
     }
 
+    /**
+     * 复制当前位图
+     *
+     * @return MBitmap
+     */
     public MBitmap clone() {
         MBitmap bitmap = new MBitmap(capacity);
         int len = array.length;

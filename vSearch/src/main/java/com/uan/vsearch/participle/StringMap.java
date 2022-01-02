@@ -4,6 +4,7 @@ import com.uan.vsearch.pinyin.PinyinStore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public class StringMap {
@@ -16,7 +17,7 @@ public class StringMap {
         mPinyinStore = store;
     }
 
-    public void put(ArrayList<String> list) {
+    public void put(List<String> list) {
         if (list == null || list.size() == 0) {
             return;
         }
@@ -38,7 +39,7 @@ public class StringMap {
         return mSourceList.get(index);
     }
 
-    private void buildMap(ArrayList<String> list) {
+    private void buildMap(List<String> list) {
 
 
         for (int j = 0; j < list.size(); j++) {

@@ -1,18 +1,20 @@
 package com.uan.vsearch.score;
 
-import com.uan.vsearch.Hit;
-import com.uan.vsearch.WordTarget;
+import java.util.List;
 
-import java.util.LinkedList;
-
-public class MarkDistanceRater implements IAlikeRater {
+/**
+ * 标记距离相似算法实现类
+ */
+public class MdRaterImpl implements IMdRater {
 
     /**
      * 最大搜索输入字符数
      */
     public static final int MAX_INPUT = 256;
 
-
+    /**
+     * 标记距离历史栈，用于查找当前被标记字符对的前面最近的被标记的字符对
+     */
     private static class HistoryStack {
         private final int[] mMarArray;
 
@@ -58,29 +60,25 @@ public class MarkDistanceRater implements IAlikeRater {
 
     private final HistoryStack mHistoryStack = new HistoryStack(MAX_INPUT);
 
-    private void advanceScore(Scores scores) {
+    private float advanceScore(List<Mark> marks, int vLen, int wLen) {
 
-        LinkedList<Hit> hits = scores.hits;
-
-        int inputLength = scores.searchLength;
-        int nameLength = scores.nameLength;
-
-        if (inputLength > MAX_INPUT) {
-            return;
+        if (vLen > MAX_INPUT) {
+            return 0;
         }
 
         mHistoryStack.clear();
 
         float sumScore = 0;
-        MBitmap wMarkBitmap = new MBitmap(nameLength);
+        MBitmap wMarkBitmap = new MBitmap(wLen);
 
         float maxScore = 0;
         int maxWIndex = -1;
 
         int preVIndex = 0;
 
-        for (Hit hit : hits) {
-            int vIndex = hit.vIndex;
+        for (Mark mark : marks) {
+            int vIndex = mark.vIndex;
+            int wIndex = mark.wIndex;
             if (preVIndex != vIndex) {
                 sumScore += maxScore;
 
@@ -93,30 +91,24 @@ public class MarkDistanceRater implements IAlikeRater {
                 maxWIndex = -1;
             }
 
-            WordTarget wordTarget = hit.target;
-            LinkedList<Integer> wordIndexList = wordTarget.getWordIndexList();
+            int findIndex = mHistoryStack.find(wIndex);
+            int startVIndex = mHistoryStack.getV(findIndex);
+            int startWIndex = mHistoryStack.getW(findIndex);
 
-            for (Integer wIndex : wordIndexList) {
+            int wForward = wIndex - startWIndex;
+            int vForward = vIndex - startVIndex;
+            int d = Math.abs(vForward - wForward);
 
-                int findIndex = mHistoryStack.find(wIndex);
-                int startVIndex = mHistoryStack.getV(findIndex);
-                int startWIndex = mHistoryStack.getW(findIndex);
+            int d2 = (wForward == 1 && wForward == vForward) ? 5 : (5 + wForward + vForward);
 
-                int wForward = wIndex - startWIndex;
-                int vForward = vIndex - startVIndex;
-                int d = Math.abs(vForward - wForward);
+            float s = (2.0f / (2 + d)) * mark.alike * (5.f / (d2));
 
-                int d2 = (wForward == 1 && wForward == vForward) ? 5 : (5 + wForward + vForward);
-
-                float s = (2.0f / (2 + d)) * hit.alike * (5.f / (d2));
-
-                if (s > maxScore) {
-                    maxScore = s;
-                    maxWIndex = wIndex;
-                } else if (s == maxScore && !wMarkBitmap.isMark(wIndex)) {
-                    maxScore = s;
-                    maxWIndex = wIndex;
-                }
+            if (s > maxScore) {
+                maxScore = s;
+                maxWIndex = wIndex;
+            } else if (s == maxScore && !wMarkBitmap.isMark(wIndex)) {
+                maxScore = s;
+                maxWIndex = wIndex;
             }
 
             preVIndex = vIndex;
@@ -128,15 +120,15 @@ public class MarkDistanceRater implements IAlikeRater {
             wMarkBitmap.mark(maxWIndex);
         }
 
-        int unMarkSize = (nameLength - wMarkBitmap.markSize);
+        int unMarkSize = (wLen - wMarkBitmap.markSize);
 
-        float finalScore = (sumScore / inputLength) * wMarkBitmap.markSize - (0.5f - (1f / (2 + unMarkSize)))/* / nameLength*/;
+        float finalScore = (sumScore / vLen) * wMarkBitmap.markSize - (0.5f - (1f / (2 + unMarkSize)))/* / nameLength*/;
 
-        scores.score = finalScore;
+        return finalScore;
     }
 
     @Override
-    public void scoring(Scores scores) {
-        advanceScore(scores);
+    public float scoring(MRecord record) {
+        return advanceScore(record.marks, record.vLen, record.wLen);
     }
 }

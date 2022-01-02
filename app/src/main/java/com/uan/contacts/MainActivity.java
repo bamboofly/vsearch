@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.uan.vsearch.IFastSearch;
+import com.uan.vsearch.MdSearch;
 import com.uan.vsearch.participle.StringMap;
 import com.uan.vsearch.pinyin.LineReader;
 import com.uan.vsearch.naive.Search;
@@ -84,14 +86,6 @@ public class MainActivity extends AppCompatActivity {
 //        for (NearPinyin n : zhao) {
 //            Log.e("lianghuan", "pinyin " + n.pinyin + ", alike " + n.alike);
 //        }
-        PinyinStore pinyinStore = new PinyinStore();
-        pinyinStore.buildPinyin(this);
-        NearPinyinGraph nearPinyinGraph = new NearPinyinGraph();
-        nearPinyinGraph.buildPinyinGraph(this);
-
-        Search search = new Search(pinyinStore, nearPinyinGraph);
-
-        StringMap stringMap = new StringMap(pinyinStore);
 
         ArrayList<String> contactsDataArrayList = new ArrayList<>();
         contactsDataArrayList.add("梁欢");
@@ -119,8 +113,10 @@ public class MainActivity extends AppCompatActivity {
         new LineReader(getAssets(), "contacts.txt").eachLine(l -> {
             contactsDataArrayList.add(l.trim());
         });
-        stringMap.put(contactsDataArrayList);
 
+        IFastSearch fastSearch = new MdSearch.Builder()
+                .context(this)
+                .create(contactsDataArrayList);
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -130,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
 //                    long start = System.currentTimeMillis();
 //
 ////                    List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-//                    List<SearchResult> list = search.search("欢欢北京", 0.3f);
+//                    List<SearchResult> list = fastSearch.search("欢欢北京", 0.3f);
 //                    long end = System.currentTimeMillis();
 //                    Log.i("lianghuan", "search end, cost time " + (end - start));
 //                    try {
@@ -141,11 +137,12 @@ public class MainActivity extends AppCompatActivity {
 //                }
 //            }
 //        }).start();
+
         Log.i("lianghuan", "search start");
         long start = System.currentTimeMillis();
 
 //        List<SearchResult> list = search.search("1254647453986", 0.3f);
-        List<SearchResult> list = search.search(stringMap, "欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+        List<SearchResult> list = fastSearch.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
 //        List<SearchResult> list = search.search("王欢欢", 0.3f);
 //        List<SearchResult> list = search.search("12453", 0.3f);
         long end = System.currentTimeMillis();
