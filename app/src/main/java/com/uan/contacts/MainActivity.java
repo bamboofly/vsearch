@@ -6,13 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.uan.vsearch.IFastSearch;
+import com.uan.vsearch.ISearch;
 import com.uan.vsearch.MdSearch;
-import com.uan.vsearch.participle.StringMap;
 import com.uan.vsearch.pinyin.LineReader;
-import com.uan.vsearch.naive.Search;
 import com.uan.vsearch.SearchResult;
-import com.uan.vsearch.pinyin.NearPinyinGraph;
-import com.uan.vsearch.pinyin.PinyinStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,9 +111,56 @@ public class MainActivity extends AppCompatActivity {
             contactsDataArrayList.add(l.trim());
         });
 
+//        fastSearch(contactsDataArrayList);
+        normalSearch(contactsDataArrayList);
+    }
+
+    private void normalSearch(ArrayList<String> contactsDataArrayList) {
+        ISearch search = new MdSearch.Builder()
+                .context(this)
+                .build();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int i = 0; i < 1000000; i++) {
+//
+//                    Log.i("lianghuan", "search start");
+//                    long start = System.currentTimeMillis();
+//
+////                    List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+//                    List<SearchResult> list = search.search(contactsDataArrayList, "欢欢北京", 0.3f);
+//                    long end = System.currentTimeMillis();
+//                    Log.i("lianghuan", "search end, cost time " + (end - start));
+//                    try {
+//                        Thread.sleep(50);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }).start();
+
+        Log.i("lianghuan", "search start");
+        long start = System.currentTimeMillis();
+
+//        List<SearchResult> list = search.search("1254647453986", 0.3f);
+//        List<SearchResult> list = search.search(contactsDataArrayList, "欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+        List<SearchResult> list = search.search(contactsDataArrayList,"积极人", 0.3f);
+//        List<SearchResult> list = search.search(contactsDataArrayList, "12453", 0.3f);
+        long end = System.currentTimeMillis();
+        Log.i("lianghuan", "search end, cost time " + (end - start));
+        for (SearchResult data : list) {
+            if (data.getScore() < 0.05) {
+                continue;
+            }
+            Log.e("lianghuan", "name " + data.getString() + ", --score " + data.getScore());
+        }
+    }
+
+    private void fastSearch(ArrayList<String> contactsDataArrayList) {
         IFastSearch fastSearch = new MdSearch.Builder()
                 .context(this)
-                .create(contactsDataArrayList);
+                .build(contactsDataArrayList);
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
