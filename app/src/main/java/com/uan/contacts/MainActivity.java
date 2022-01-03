@@ -5,8 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.uan.vsearch.IFastSearch;
-import com.uan.vsearch.ISearch;
+import com.uan.vsearch.IFastMdSearch;
+import com.uan.vsearch.IMdSearch;
 import com.uan.vsearch.MdSearch;
 import com.uan.vsearch.pinyin.LineReader;
 import com.uan.vsearch.SearchResult;
@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void normalSearch(ArrayList<String> contactsDataArrayList) {
-        ISearch search = new MdSearch.Builder()
+        IMdSearch search = new MdSearch.Builder()
                 .context(this)
                 .build();
 //        new Thread(new Runnable() {
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        List<SearchResult> list = search.search(contactsDataArrayList, "18651199784", 0.3f);
 //        List<SearchResult> list = search.search(contactsDataArrayList, "欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-        List<SearchResult> list = search.search(contactsDataArrayList,"积极人", 0.3f);
+        List<SearchResult> list = search.search(contactsDataArrayList,"潘长江", 0.3f);
 //        List<SearchResult> list = search.search(contactsDataArrayList, "12453", 0.3f);
         long end = System.currentTimeMillis();
         Log.i("lianghuan", "search end, cost time " + (end - start));
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fastSearch(ArrayList<String> contactsDataArrayList) {
-        IFastSearch fastSearch = new MdSearch.Builder()
+        IFastMdSearch fastSearch = new MdSearch.Builder()
                 .context(this)
                 .build(contactsDataArrayList);
         new Thread(new Runnable() {

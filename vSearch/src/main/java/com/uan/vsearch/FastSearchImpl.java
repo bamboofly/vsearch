@@ -7,6 +7,7 @@ import com.uan.vsearch.participle.WordTarget;
 import com.uan.vsearch.pinyin.NearPinyin;
 import com.uan.vsearch.pinyin.NearPinyinGraph;
 import com.uan.vsearch.pinyin.PinyinStore;
+import com.uan.vsearch.score.MRecord;
 import com.uan.vsearch.score.Mark;
 import com.uan.vsearch.score.MdRaterImpl;
 
@@ -117,5 +118,17 @@ class FastSearchImpl implements IFastSearch {
         }
 
         return searchList;
+    }
+
+    static class FastScore extends MRecord {
+
+        public final int stringMapIndex;
+
+        public float score;
+
+        public FastScore(int i, int v, int w) {
+            super(v, w);
+            stringMapIndex = i;
+        }
     }
 }

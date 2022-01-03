@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-class SearchImpl implements ISearch {
+class CommonSearchImpl implements ICommonSearch {
 
 
     private final PinyinStore mPinyinStore;
@@ -23,7 +23,7 @@ class SearchImpl implements ISearch {
 
     private final MdRaterImpl mMdRater = new MdRaterImpl();
 
-    SearchImpl(PinyinStore p, NearPinyinGraph n) {
+    CommonSearchImpl(PinyinStore p, NearPinyinGraph n) {
         mPinyinStore = p;
 
         mNearPinyinGraph = n;

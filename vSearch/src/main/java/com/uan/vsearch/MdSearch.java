@@ -6,21 +6,73 @@ import com.uan.vsearch.participle.StringMap;
 import com.uan.vsearch.pinyin.NearPinyinGraph;
 import com.uan.vsearch.pinyin.PinyinStore;
 
+import java.util.LinkedList;
 import java.util.List;
 
-public class MdSearch {
+public class MdSearch implements IFastMdSearch {
+
+    private static final float NEAR_SEARCH_DEPTH_DEFAULT = 0.3f;
+
+    private final IFastSearch mFastSearch;
+    private final ICommonSearch mCommonSearch;
+
+    private final float mNearSearchDepth;
+
+    private MdSearch(ICommonSearch commonSearch, IFastSearch fastMdSearch, float nearSearchDepth) {
+        mFastSearch = fastMdSearch;
+        mCommonSearch = commonSearch;
+        mNearSearchDepth = nearSearchDepth;
+    }
+
+    @Override
+    public List<SearchResult> search(String key) {
+        return search(key, mNearSearchDepth);
+    }
+
+    @Override
+    public List<SearchResult> search(String key, float nearDepth) {
+        if (mFastSearch != null) {
+            return mFastSearch.search(key, nearDepth);
+        } else {
+            return new LinkedList<>();
+        }
+    }
+
+    @Override
+    public List<SearchResult> search(List<String> list, String key) {
+        return search(list, key, mNearSearchDepth);
+    }
+
+    @Override
+    public List<SearchResult> search(List<String> list, String key, float nearDepth) {
+        List<SearchResult> results = mCommonSearch.search(list, key, nearDepth);
+        if (mFastSearch != null) {
+            results.addAll(mFastSearch.search(key, nearDepth));
+        }
+        return results;
+    }
 
     public static class Builder {
 
 
         private Context context;
 
+        private float depth = NEAR_SEARCH_DEPTH_DEFAULT;
+
         public Builder context(Context c) {
             context = c;
             return this;
         }
 
-        public IFastSearch build(List<String> stringList) {
+        public Builder nearSearchDepth(float n) {
+            if (n < 0) {
+                depth = 0f;
+            } else depth = Math.min(n, 0.3f);
+
+            return this;
+        }
+
+        public IFastMdSearch build(List<String> stringList) {
             checkParams();
 
             PinyinStore pinyinStore = new PinyinStore();
@@ -32,10 +84,14 @@ public class MdSearch {
             StringMap stringMap = new StringMap(pinyinStore);
             stringMap.put(stringList);
 
-            return new FastSearchImpl(pinyinStore, nearPinyinGraph, stringMap);
+            FastSearchImpl fastSearch = new FastSearchImpl(pinyinStore, nearPinyinGraph, stringMap);
+
+            CommonSearchImpl commonSearch = new CommonSearchImpl(pinyinStore, nearPinyinGraph);
+
+            return new MdSearch(commonSearch, fastSearch, depth);
         }
 
-        public ISearch build() {
+        public IMdSearch build() {
             checkParams();
 
             PinyinStore pinyinStore = new PinyinStore();
@@ -44,7 +100,9 @@ public class MdSearch {
             NearPinyinGraph nearPinyinGraph = new NearPinyinGraph();
             nearPinyinGraph.buildPinyinGraph(context);
 
-            return new SearchImpl(pinyinStore, nearPinyinGraph);
+            CommonSearchImpl commonSearch = new CommonSearchImpl(pinyinStore, nearPinyinGraph);
+
+            return new MdSearch(commonSearch, null, depth);
         }
 
         private void checkParams() {
