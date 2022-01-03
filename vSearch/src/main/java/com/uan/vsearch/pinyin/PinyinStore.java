@@ -65,6 +65,12 @@ public class PinyinStore {
         mPinyinToneMap.put("ǜ", "ü2");
     }
 
+    /**
+     * 查找字符的拼音
+     *
+     * @param oneChinese 单个字符
+     * @return 拼音字符串
+     */
     public String getPinyin(String oneChinese) {
         if (oneChinese == null || oneChinese.length() < 1) {
             return "";
@@ -75,6 +81,12 @@ public class PinyinStore {
         return getPinyin(unicode);
     }
 
+    /**
+     * 查找字符的拼音
+     *
+     * @param u 字符的unicode值
+     * @return 拼音字符串
+     */
     public String getPinyin(int u) {
         for (PinyinBlock block : mBlockArray) {
             boolean contained = block.contained(u);
@@ -86,6 +98,12 @@ public class PinyinStore {
         return "";
     }
 
+    /**
+     * 查找字符的拼音索引
+     *
+     * @param u 字符的unicode编码值
+     * @return int {@link PinyinIndex}
+     */
     public int getPinyinIndex(int u) {
         int size = mBlockArray.size();
         for (int i = 0; i < size; i++) {
@@ -99,11 +117,22 @@ public class PinyinStore {
         return -1;
     }
 
+    /**
+     * 查找拼音对应的索引
+     *
+     * @param pinyin 拼音
+     * @return int {@link PinyinIndex}
+     */
     public int getPinyinIndex(String pinyin) {
         return mPinyinIndex.getPinyinIndex(pinyin);
     }
 
-    public void buildPinyin(Context context) {
+    /**
+     * 初始化全部拼音
+     *
+     * @param context 应用上下文
+     */
+    public void initPinyin(Context context) {
         AssetManager assets = context.getAssets();
         InputStream inputStream = null;
         try {

@@ -24,7 +24,7 @@ public class MdSearch {
             checkParams();
 
             PinyinStore pinyinStore = new PinyinStore();
-            pinyinStore.buildPinyin(context);
+            pinyinStore.initPinyin(context);
 
             NearPinyinGraph nearPinyinGraph = new NearPinyinGraph();
             nearPinyinGraph.buildPinyinGraph(context);
@@ -39,7 +39,7 @@ public class MdSearch {
             checkParams();
 
             PinyinStore pinyinStore = new PinyinStore();
-            pinyinStore.buildPinyin(context);
+            pinyinStore.initPinyin(context);
 
             NearPinyinGraph nearPinyinGraph = new NearPinyinGraph();
             nearPinyinGraph.buildPinyinGraph(context);
