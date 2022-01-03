@@ -18,6 +18,14 @@ class PinyinBlock {
         mPinyinArray = array;
     }
 
+    /**
+     * 获取该Block的大小
+     *
+     * @return int block的大小
+     */
+    public int getBlockSize() {
+        return mEndCode - mStartCode + 1;
+    }
 
     /**
      * 获取这个Block对应的起始汉字unicode值

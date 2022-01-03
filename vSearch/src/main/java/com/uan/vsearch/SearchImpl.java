@@ -37,7 +37,7 @@ class SearchImpl implements ISearch {
 
         int keyLength = unicodeArray.length;
 
-        HashMap<Integer, LinkedList<TargetNode>> hashMap = new HashMap<>();
+        HashMap<Integer, ArrayList<TargetNode>> hashMap = new HashMap<>();
 
         for (int i = 0; i < keyLength; i++) {
             String pinyin = mPinyinStore.getPinyin(unicodeArray[i]);
@@ -50,9 +50,9 @@ class SearchImpl implements ISearch {
 
             for (NearPinyin n : nearPinyin) {
                 int pinyinIndex = mPinyinStore.getPinyinIndex(n.pinyin);
-                LinkedList<TargetNode> targetNodes = hashMap.get(pinyinIndex);
+                ArrayList<TargetNode> targetNodes = hashMap.get(pinyinIndex);
                 if (targetNodes == null) {
-                    targetNodes = new LinkedList<>();
+                    targetNodes = new ArrayList<>();
                     hashMap.put(pinyinIndex, targetNodes);
                 }
 
@@ -70,13 +70,15 @@ class SearchImpl implements ISearch {
             for (int i = 0; i < arrayLen; i++) {
                 int pinyinIndex = mPinyinStore.getPinyinIndex(codeArray[i]);
 
-                LinkedList<TargetNode> targetNodes = hashMap.get(pinyinIndex);
+                ArrayList<TargetNode> targetNodes = hashMap.get(pinyinIndex);
 
                 if (targetNodes == null) {
                     continue;
                 }
 
-                for (TargetNode t : targetNodes) {
+                int size = targetNodes.size();
+                for (int j = 0; j < size; j++) {
+                    TargetNode t = targetNodes.get(j);
                     float alike;
                     if (t.unicode == codeArray[i]) {
                         alike = 1f;
@@ -103,7 +105,6 @@ class SearchImpl implements ISearch {
 
 
             scores.score = mMdRater.scoring(scores);
-//            Log.e("lianghuan", "str " + scores.searchString + ", score " + scores.score);
             scoresArrayList.add(scores);
         }
 
@@ -116,12 +117,7 @@ class SearchImpl implements ISearch {
             return 0;
         });
 
-        List<SearchResult> searchList;
-        if (scoresArrayList.size() > 7) {
-            searchList = new ArrayList<>(scoresArrayList.size());
-        } else {
-            searchList = new LinkedList<>();
-        }
+        List<SearchResult> searchList = new ArrayList<>(scoresArrayList.size());
 
         for (int i = 0; i < scoresArrayList.size(); i++) {
             Scores scores = scoresArrayList.get(i);

@@ -11,6 +11,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * 汉字查询拼音功能
+ */
 public class PinyinStore {
 
     private static final String TAG = "PinyinStore";
@@ -84,7 +87,9 @@ public class PinyinStore {
     }
 
     public int getPinyinIndex(int u) {
-        for (PinyinBlock block : mBlockArray) {
+        int size = mBlockArray.size();
+        for (int i = 0; i < size; i++) {
+            PinyinBlock block = mBlockArray.get(i);
             boolean contained = block.contained(u);
             if (contained) {
                 return block.getPinyinIndex(u);
@@ -126,7 +131,7 @@ public class PinyinStore {
 
                 if (unicode - lastUnicode > MAX_EMPTY_BUCKET_SIZE) {
                     PinyinBlock block = buildPinyinBlock(lineList);
-                    mBlockArray.add(block);
+                    addBlock(block);
                     lineList = new ArrayList<>(1024);
 
                 }
@@ -140,7 +145,7 @@ public class PinyinStore {
 
             if (lineList.size() > 0) {
                 PinyinBlock block = buildPinyinBlock(lineList);
-                mBlockArray.add(block);
+                addBlock(block);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,6 +165,24 @@ public class PinyinStore {
         }
 
 
+    }
+
+    private void addBlock(PinyinBlock block) {
+        int blockSize = block.getBlockSize();
+        if (mBlockArray.size() > 0) {
+            int addIndex = mBlockArray.size();
+            for (int i = 0; i < mBlockArray.size(); i++) {
+                PinyinBlock pinyinBlock = mBlockArray.get(i);
+                int size = pinyinBlock.getBlockSize();
+                if (size < blockSize) {
+                    addIndex = i;
+                    break;
+                }
+            }
+            mBlockArray.add(addIndex, block);
+        } else {
+            mBlockArray.add(block);
+        }
     }
 
     private PinyinBlock buildPinyinBlock(ArrayList<String> lineList) {

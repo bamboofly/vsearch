@@ -92,10 +92,10 @@ class FastSearchImpl implements IFastSearch {
         }
 
         // 计算评分
-        for (FastScore hit : scoresList) {
-            hit.score = mMdRater.scoring(hit);
-
-//            mAdvanceScore.scoring2(hit);
+        int size = scoresList.size();
+        for (int i = 0; i < size; i++) {
+            FastScore fastScore = scoresList.get(i);
+            fastScore.score = mMdRater.scoring(fastScore);
         }
 
         // 按评分降序
@@ -108,12 +108,7 @@ class FastSearchImpl implements IFastSearch {
             return 0;
         });
 
-        List<SearchResult> searchList;
-        if (scoresList.size() > 7) {
-            searchList = new ArrayList<>(scoresList.size());
-        } else {
-            searchList = new LinkedList<>();
-        }
+        List<SearchResult> searchList = new ArrayList<>(scoresList.size());
 
         for (int i = 0; i < scoresList.size(); i++) {
             FastScore scores = scoresList.get(i);

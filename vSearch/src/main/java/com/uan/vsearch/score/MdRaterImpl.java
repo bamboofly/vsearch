@@ -1,5 +1,6 @@
 package com.uan.vsearch.score;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,7 +61,7 @@ public class MdRaterImpl implements IMdRater {
 
     private final HistoryStack mHistoryStack = new HistoryStack(MAX_INPUT);
 
-    private float advanceScore(List<Mark> marks, int vLen, int wLen) {
+    private float advanceScore(ArrayList<Mark> marks, int vLen, int wLen) {
 
         if (vLen > MAX_INPUT) {
             return 0;
@@ -76,7 +77,12 @@ public class MdRaterImpl implements IMdRater {
 
         int preVIndex = 0;
 
-        for (Mark mark : marks) {
+        int vLenAddWLen = vLen + wLen;
+
+        int size = marks.size();
+
+        for (int i = 0; i < size; i++) {
+            Mark mark = marks.get(i);
             int vIndex = mark.vIndex;
             int wIndex = mark.wIndex;
             if (preVIndex != vIndex) {
@@ -99,9 +105,9 @@ public class MdRaterImpl implements IMdRater {
             int vForward = vIndex - startVIndex;
             int d = Math.abs(vForward - wForward);
 
-            int d2 = (wForward == 1 && wForward == vForward) ? 5 : (5 + wForward + vForward);
+            int d2 = (wForward == 1 && wForward == vForward) ? vLenAddWLen : (vLenAddWLen + wForward + vForward);
 
-            float s = (2.0f / (2 + d)) * mark.alike * (5.f / (d2));
+            float s = (2.0f / (2 + d)) * mark.alike * ((float) vLenAddWLen / (d2));
 
             if (s > maxScore) {
                 maxScore = s;
