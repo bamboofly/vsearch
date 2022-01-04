@@ -99,16 +99,6 @@ class FastSearchImpl implements IFastSearch {
             fastScore.score = mMdRater.scoring(fastScore);
         }
 
-        // 按评分降序
-        scoresList.sort((o1, o2) -> {
-            if (o1.score > o2.score) {
-                return -1;
-            } else if (o1.score < o2.score) {
-                return 1;
-            }
-            return 0;
-        });
-
         List<SearchResult> searchList = new ArrayList<>(scoresList.size());
 
         for (int i = 0; i < scoresList.size(); i++) {

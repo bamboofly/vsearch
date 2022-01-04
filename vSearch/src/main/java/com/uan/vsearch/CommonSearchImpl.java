@@ -108,15 +108,6 @@ class CommonSearchImpl implements ICommonSearch {
             scoresArrayList.add(scores);
         }
 
-        scoresArrayList.sort((o1, o2) -> {
-            if (o1.score > o2.score) {
-                return -1;
-            } else if (o1.score < o2.score) {
-                return 1;
-            }
-            return 0;
-        });
-
         List<SearchResult> searchList = new ArrayList<>(scoresArrayList.size());
 
         for (int i = 0; i < scoresArrayList.size(); i++) {

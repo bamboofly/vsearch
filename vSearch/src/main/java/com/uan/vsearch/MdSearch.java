@@ -6,6 +6,7 @@ import com.uan.vsearch.participle.StringMap;
 import com.uan.vsearch.pinyin.NearPinyinGraph;
 import com.uan.vsearch.pinyin.PinyinStore;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,6 +18,15 @@ public class MdSearch implements IFastMdSearch {
     private final ICommonSearch mCommonSearch;
 
     private final float mNearSearchDepth;
+
+    private final Comparator<SearchResult> mResultComparator = (o1, o2) -> {
+        if (o1.getScore() > o2.getScore()) {
+            return -1;
+        } else if (o1.getScore() < o2.getScore()) {
+            return 1;
+        }
+        return 0;
+    };
 
     private MdSearch(ICommonSearch commonSearch, IFastSearch fastMdSearch, float nearSearchDepth) {
         mFastSearch = fastMdSearch;
@@ -32,7 +42,9 @@ public class MdSearch implements IFastMdSearch {
     @Override
     public List<SearchResult> search(String key, float nearDepth) {
         if (mFastSearch != null) {
-            return mFastSearch.search(key, nearDepth);
+            List<SearchResult> results = mFastSearch.search(key, nearDepth);
+            results.sort(mResultComparator);
+            return results;
         } else {
             return new LinkedList<>();
         }
@@ -49,6 +61,7 @@ public class MdSearch implements IFastMdSearch {
         if (mFastSearch != null) {
             results.addAll(mFastSearch.search(key, nearDepth));
         }
+        results.sort(mResultComparator);
         return results;
     }
 
