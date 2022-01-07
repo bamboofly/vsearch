@@ -53,8 +53,9 @@ public class MainActivity extends AppCompatActivity {
         Log.e("lianghuan", "charAt6 " + Integer.toHexString(i6));
 
         String s7 = "\uD874\uDC16";
-        int i77 = s2.codePointAt(0);
+        int i77 = s7.codePointAt(0);
         Log.e("lianghuan", "codePointAt i7 = " + Integer.toHexString(i77));
+        Log.e("lianghuan", "charAt s7 = " + Integer.toHexString(s7.charAt(0)));
 
         String a1 = "zhao";
         String a2 = "zha1o";
@@ -105,14 +106,18 @@ public class MainActivity extends AppCompatActivity {
         contactsDataArrayList.add("黄芸欢");
         contactsDataArrayList.add("王欢欢");
         contactsDataArrayList.add("欢欢嘻嘻");
+        contactsDataArrayList.add("系不系");
         contactsDataArrayList.add("124453");
         contactsDataArrayList.add("12153");
         new LineReader(getAssets(), "contacts.txt").eachLine(l -> {
             contactsDataArrayList.add(l.trim());
         });
 
+        fastSearch(contactsDataArrayList);
 //        fastSearch(contactsDataArrayList);
-        normalSearch(contactsDataArrayList);
+//        fastSearch(contactsDataArrayList);
+//        fastSearch(contactsDataArrayList);
+//        normalSearch(contactsDataArrayList);
     }
 
     private void normalSearch(ArrayList<String> contactsDataArrayList) {
@@ -145,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        List<SearchResult> list = search.search(contactsDataArrayList, "18651199784", 0.3f);
 //        List<SearchResult> list = search.search(contactsDataArrayList, "欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-        List<SearchResult> list = search.search(contactsDataArrayList,"潘长江", 0.3f);
+        List<SearchResult> list = search.search(contactsDataArrayList,"剪鱼帮", 0.3f);
 //        List<SearchResult> list = search.search(contactsDataArrayList, "12453", 0.3f);
         long end = System.currentTimeMillis();
         Log.i("lianghuan", "search end, cost time " + (end - start));
@@ -161,32 +166,32 @@ public class MainActivity extends AppCompatActivity {
         IFastMdSearch fastSearch = new MdSearch.Builder()
                 .context(this)
                 .build(contactsDataArrayList);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 1000000; i++) {
-
-                    Log.i("lianghuan", "search start");
-                    long start = System.currentTimeMillis();
-
-//                    List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-                    List<SearchResult> list = fastSearch.search("欢欢北京", 0.3f);
-                    long end = System.currentTimeMillis();
-                    Log.i("lianghuan", "search end, cost time " + (end - start));
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                for (int i = 0; i < 100000000; i++) {
+//
+////                    Log.i("lianghuan", "search start");
+//                    long start = System.currentTimeMillis();
+//
+////                    List<SearchResult> list = search.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+//                    List<SearchResult> list = fastSearch.search("欢欢北京", 0.3f);
+//                    long end = System.currentTimeMillis();
+////                    Log.i("lianghuan", "search end, cost time " + (end - start));
+////                    try {
+////                        Thread.sleep(50);
+////                    } catch (InterruptedException e) {
+////                        e.printStackTrace();
+////                    }
+//                }
+//            }
+//        }).start();
 
         Log.i("lianghuan", "search start");
         long start = System.currentTimeMillis();
 
-//        List<SearchResult> list = search.search("1254647453986", 0.3f);
-        List<SearchResult> list = fastSearch.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
+        List<SearchResult> list = fastSearch.search("是不是", 0.3f);
+//        List<SearchResult> list = fastSearch.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
 //        List<SearchResult> list = search.search("王欢欢", 0.3f);
 //        List<SearchResult> list = search.search("12453", 0.3f);
         long end = System.currentTimeMillis();

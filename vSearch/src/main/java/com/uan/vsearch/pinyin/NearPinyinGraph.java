@@ -16,8 +16,9 @@ import java.util.regex.Pattern;
 public class NearPinyinGraph {
 
     private static final String TAG = "NearPinyinGraph";
-    private static final String NEAR_PINYIN_FILE_NAME = "pinyin-tone.txt";
+    private static final String NEAR_PINYIN_TONE_FILE_NAME = "pinyin-tone.txt";
     private static final String NEAR_SHENG_MU_FILE_NAME = "near-shengmu.txt";
+    private static final String NEAR_PINYIN_FILE_NAME = "near-pinyin.txt";
 
     public static final float FULL_ALIKE_SCORE = 1f;
     public static final float PINYIN_ALIKE_SCORE = 0.95f;
@@ -87,6 +88,9 @@ public class NearPinyinGraph {
         // 构建有无后鼻音相似度
         connectG(mPinyinMap);
 
+        // 构建声母相似
+        connectShengmuLike(mPinyinMap, context);
+
         // 构建自定义相似
         connectCustomLike(mPinyinMap, context);
     }
@@ -102,7 +106,7 @@ public class NearPinyinGraph {
         two.mEdges.add(edge);
     }
 
-    private void connectCustomLike(HashMap<String, Node> pinyinMap, Context context) {
+    private void connectShengmuLike(HashMap<String, Node> pinyinMap, Context context) {
 
         Pattern pattern = Pattern.compile("^([a-z]+) - ([a-z]+) : ([/.0-9]+)$");
 
@@ -138,10 +142,41 @@ public class NearPinyinGraph {
                 });
     }
 
+    private void connectCustomLike(HashMap<String, Node> pinyinMap, Context context) {
+
+        Pattern pattern = Pattern.compile("^(.*?) - (.*?) : ([/.0-9]+)$");
+
+        new LineReader(context.getAssets(), NEAR_PINYIN_FILE_NAME)
+                .eachLine(l -> {
+                    Matcher matcher = pattern.matcher(l);
+                    int groupCount = matcher.groupCount();
+
+                    if (groupCount < 3) {
+                        return;
+                    }
+                    boolean b = matcher.find();
+                    if (!b) {
+                        Log.e(TAG, "not match " + ", l " + l);
+                        return;
+                    }
+                    String one = matcher.group(1);
+                    String two = matcher.group(2);
+                    String alike = matcher.group(3);
+
+                    float f = Float.parseFloat(alike);
+
+                    Node oneNode = pinyinMap.get(one);
+                    Node twoNode = pinyinMap.get(two);
+                    if (oneNode != null && twoNode != null) {
+                        connectNode(oneNode, twoNode, f);
+                    }
+                });
+    }
+
 
     private void readPinyinFromFile(Context context, HashMap<String, Node> hashMap) {
         AssetManager assets = context.getAssets();
-        new LineReader(assets, NEAR_PINYIN_FILE_NAME)
+        new LineReader(assets, NEAR_PINYIN_TONE_FILE_NAME)
                 .eachLine(l -> {
                     Node node = new Node(l);
                     hashMap.put(l, node);
@@ -194,7 +229,7 @@ public class NearPinyinGraph {
                 edge.one = node;
                 edge.two = next;
                 // TODO 一些拼音可能没有第二声，距离不一定都是0.1f
-                edge.distance = 0.1f;
+                edge.distance = 0.08f;
 
                 node.mEdges.add(edge);
                 next.mEdges.add(edge);
