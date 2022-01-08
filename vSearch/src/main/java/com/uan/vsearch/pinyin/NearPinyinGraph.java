@@ -212,14 +212,7 @@ public class NearPinyinGraph {
                 return;
             }
 
-            nodes.sort((o1, o2) -> {
-                int com = o1.pinyin.compareTo(o2.pinyin);
-
-                if (Math.abs(com) > ('a' - '9')) {
-                    return Math.abs(com);
-                }
-                return com;
-            });
+            nodes.sort((o1, o2) -> o1.pinyin.compareTo(o2.pinyin));
 
             Node node = nodes.removeFirst();
             while (nodes.size() > 0) {
@@ -228,8 +221,10 @@ public class NearPinyinGraph {
                 Edge edge = new Edge();
                 edge.one = node;
                 edge.two = next;
-                // TODO 一些拼音可能没有第二声，距离不一定都是0.1f
-                edge.distance = 0.08f;
+                // 一些拼音可能没有某个声调，距离不一定都是0.08f
+                int k = node.pinyin.compareTo(next.pinyin);
+                k = Math.abs(k);
+                edge.distance = 0.08f * k;
 
                 node.mEdges.add(edge);
                 next.mEdges.add(edge);
