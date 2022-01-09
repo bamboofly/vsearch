@@ -4,12 +4,14 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,6 +95,24 @@ public class NearPinyinGraph {
 
         // 构建自定义相似
         connectCustomLike(mPinyinMap, context);
+
+        // 声调为0的拼音和没有声调数字的拼音是一样的，这里添加没有声调拼音的映射。注意这方法必须最后执行
+        addExpandMap();
+    }
+
+    private void addExpandMap() {
+
+        HashMap<String, Node> hashMap = new HashMap<>();
+        // 如果声调为0，添加该拼音的另一种写法
+        Pattern pattern = Pattern.compile("^.*?0");
+        mPinyinMap.forEach((s, node) -> {
+            boolean find = pattern.matcher(s).find();
+            if (find) {
+                String replace = s.replace("0", "");
+                hashMap.put(replace, node);
+            }
+        });
+        mPinyinMap.putAll(hashMap);
     }
 
     private void connectNode(Node one, Node two, float dis) {
