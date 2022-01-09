@@ -5,11 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.uan.vsearch.IFastMdSearch;
-import com.uan.vsearch.IMdSearch;
-import com.uan.vsearch.MdSearch;
-import com.uan.vsearch.pinyin.LineReader;
-import com.uan.vsearch.SearchResult;
+import com.uan.search.fuzzy.IFastMdSearch;
+import com.uan.search.fuzzy.IMdSearch;
+import com.uan.search.fuzzy.MdSearch;
+import com.uan.search.pinyin.LineReader;
+import com.uan.search.fuzzy.SearchResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,9 +64,13 @@ public class MainActivity extends AppCompatActivity {
 
         int i7 = a1.compareTo(a2);
         int i8 = a2.compareTo(a3);
-        int i9 = a3.compareTo(a1);
-        int i10 = a3.compareTo(a4);
+        int i9 = a3.compareTo(a4);
+        int i10 = a2.compareTo(a4);
         Log.e("lianghuan", "i7 = " + i7 + " i8 = " + i8 + " i9 = " + i9 + " i10 = " + i10);
+
+        String a5 = "za2";
+        String a6 = "za";
+        Log.e("lianghuan", "za com za1 = " + a6.compareTo(a5) + ", a - 9 = " + ('a' - '9'));
 
 //        PinyinStore pinyinStore = new PinyinStore(this);
 //        pinyinStore.buildPinyin();
@@ -190,10 +194,10 @@ public class MainActivity extends AppCompatActivity {
         Log.i("lianghuan", "search start");
         long start = System.currentTimeMillis();
 
-        List<SearchResult> list = fastSearch.search("是不是", 0.3f);
+//        List<SearchResult> list = fastSearch.search("是不是", 0.3f);
 //        List<SearchResult> list = fastSearch.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-//        List<SearchResult> list = search.search("王欢欢", 0.3f);
-//        List<SearchResult> list = search.search("12453", 0.3f);
+        List<SearchResult> list = fastSearch.search("王欢欢", 0.3f);
+//        List<SearchResult> list = fastSearch.search("12453", 0.3f);
         long end = System.currentTimeMillis();
         Log.i("lianghuan", "search end, cost time " + (end - start));
         for (SearchResult data : list) {
