@@ -11,24 +11,24 @@
 
 ```java
     ArrayList<String> list = new ArrayList<>();
-    list.add("李晓峰");
+    list.add("李露仁");
     list.add("路人B")
-    list.add("10086");
+    list.add("王某人");
 
     IMdSearch search = new MdSearch.Builder()
             .context(this) // Application context
             .build();
 
-    List<SearchResult> searchResults = search.search(list, "黎笑疯");
+    List<SearchResult> searchResults = search.search(list, "离路人");
     for (SearchResult result : searchResults) {
         Log.d("test", result.getString() + " = " + result.getScore());
     }
 ```
 打印结果：
 ```java
-李一峰 = 2.53
-爱疯B = -0.12878788
-10086 = -0.21858585
+李露仁 = 2.77
+路人B = 0.79629624
+王某人 = -0.08333333
 ```
 
 你还可以使用加速接口：
