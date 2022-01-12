@@ -4,6 +4,7 @@
 
 ## 特点：
 1、非常快。
+
 2、强大的相似音搜索。
 
 ## 应用：
@@ -71,3 +72,8 @@ dependencies {
     implementation 'com.github.bamboofly:vsearch:1.0.2'
 }
 ```
+
+
+
+### 相关算法介绍
+1、https://blog.csdn.net/qq_16374771/article/details/122261992
