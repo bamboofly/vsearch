@@ -31,16 +31,28 @@ public class MdRaterImpl implements IMdRater {
             mTop = 0;
         }
 
-        public int find(int wIndex) {
+        public int find(int vIndex, int wIndex) {
 
             int i = mTop;
+            int minDif = Integer.MAX_VALUE;
+            int find = mTop;
             for (; i >= 0; i -= 2) {
-                if (mMarArray[i + 1] < wIndex) {
-                    break;
+                int tempWIndex = mMarArray[i + 1];
+                int difW = wIndex - tempWIndex;
+                if (difW > 0 && difW < minDif) {
+                    int tempVIndex = mMarArray[i];
+                    int difV = vIndex - tempVIndex;
+                    int dif = Math.max(difV, difW);
+                    if (dif < minDif) {
+                        minDif = dif;
+                        find = i;
+                    } else if (difV >= minDif) {
+                        break;
+                    }
                 }
             }
 
-            return i;
+            return find;
         }
 
         public void put(int vIndex, int wIndex) {
@@ -96,7 +108,7 @@ public class MdRaterImpl implements IMdRater {
                 maxWIndex = -1;
             }
 
-            int findIndex = mHistoryStack.find(wIndex);
+            int findIndex = mHistoryStack.find(vIndex, wIndex);
             int startVIndex = mHistoryStack.getV(findIndex);
             int startWIndex = mHistoryStack.getW(findIndex);
 
