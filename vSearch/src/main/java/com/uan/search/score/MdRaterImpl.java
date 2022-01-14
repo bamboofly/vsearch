@@ -31,7 +31,7 @@ public class MdRaterImpl implements IMdRater {
             mTop = 0;
         }
 
-        public int find(int vIndex, int wIndex) {
+        public int find(int wIndex) {
 
             int i = mTop;
             for (; i >= 0; i -= 2) {
@@ -98,7 +98,7 @@ public class MdRaterImpl implements IMdRater {
                 maxWIndex = -1;
             }
 
-            int findIndex = mHistoryStack.find(vIndex, wIndex);
+            int findIndex = mHistoryStack.find(wIndex);
             int startVIndex = mHistoryStack.getV(findIndex);
             int startWIndex = mHistoryStack.getW(findIndex);
 
