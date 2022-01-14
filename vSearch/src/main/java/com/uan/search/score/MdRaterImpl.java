@@ -34,25 +34,15 @@ public class MdRaterImpl implements IMdRater {
         public int find(int vIndex, int wIndex) {
 
             int i = mTop;
-            int minDif = Integer.MAX_VALUE;
-            int find = mTop;
             for (; i >= 0; i -= 2) {
                 int tempWIndex = mMarArray[i + 1];
                 int difW = wIndex - tempWIndex;
-                if (difW > 0 && difW < minDif) {
-                    int tempVIndex = mMarArray[i];
-                    int difV = vIndex - tempVIndex;
-                    int dif = Math.max(difV, difW);
-                    if (dif < minDif) {
-                        minDif = dif;
-                        find = i;
-                    } else if (difV >= minDif) {
-                        break;
-                    }
+                if (difW > 0) {
+                    break;
                 }
             }
 
-            return find;
+            return i;
         }
 
         public void put(int vIndex, int wIndex) {
