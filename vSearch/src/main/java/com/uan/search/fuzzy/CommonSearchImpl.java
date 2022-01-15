@@ -1,7 +1,5 @@
 package com.uan.search.fuzzy;
 
-import android.text.TextUtils;
-
 import com.uan.search.pinyin.NearPinyin;
 import com.uan.search.pinyin.NearPinyinGraph;
 import com.uan.search.pinyin.PinyinStore;
@@ -31,21 +29,15 @@ class CommonSearchImpl implements ICommonSearch {
 
 
     @Override
-    public List<SearchResult> search(List<String> sourceList, String key, float dis) {
+    public List<SearchResult> search(List<String> sourceList, VoiceList voiceList, float dis) {
 
-        int[] unicodeArray = key.codePoints().toArray();
-
-        int keyLength = unicodeArray.length;
 
         HashMap<Integer, ArrayList<TargetNode>> hashMap = new HashMap<>();
+        int voiceLength = voiceList.length();
 
-        for (int i = 0; i < keyLength; i++) {
-            String pinyin = mPinyinStore.getPinyin(unicodeArray[i]);
-
-            if (TextUtils.isEmpty(pinyin)) {
-                continue;
-            }
-
+        voiceList.eachVoice((index, voice) -> {
+            int unicode = voice.unicode;
+            String pinyin = voice.pinyin;
             LinkedList<NearPinyin> nearPinyin = mNearPinyinGraph.getNearPinyin(pinyin, dis);
 
             for (NearPinyin n : nearPinyin) {
@@ -56,16 +48,17 @@ class CommonSearchImpl implements ICommonSearch {
                     hashMap.put(pinyinIndex, targetNodes);
                 }
 
-                targetNodes.add(new TargetNode(unicodeArray[i], i, n.alike));
+                targetNodes.add(new TargetNode(unicode, index, n.alike));
             }
-        }
+        });
 
         ArrayList<Scores> scoresArrayList = new ArrayList<>();
+
         for (String l : sourceList) {
             int[] codeArray = l.codePoints().toArray();
             int arrayLen = codeArray.length;
 
-            Scores scores = new Scores(l, keyLength, arrayLen);
+            Scores scores = new Scores(l, voiceLength, arrayLen);
 
             for (int i = 0; i < arrayLen; i++) {
                 int pinyinIndex = mPinyinStore.getPinyinIndex(codeArray[i]);
