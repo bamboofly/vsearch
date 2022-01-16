@@ -91,27 +91,27 @@ public class MainActivity extends AppCompatActivity {
 //        }
 
         ArrayList<String> contactsDataArrayList = new ArrayList<>();
-//        contactsDataArrayList.add("梁欢");
-//        contactsDataArrayList.add("百度-张三");
-//        contactsDataArrayList.add("华为深圳利四");
-//        contactsDataArrayList.add("东莞华为昭武");
-//        contactsDataArrayList.add("83号技师");
-//        contactsDataArrayList.add("雅阁77技师");
-//        contactsDataArrayList.add("贝贝");
-//        contactsDataArrayList.add("配钥匙");
-//        contactsDataArrayList.add("北京-欢欢");
-//        contactsDataArrayList.add("小混蛋");
-//        contactsDataArrayList.add("小日子");
-//        contactsDataArrayList.add("岗头村委");
-//        contactsDataArrayList.add("自己人");
-//        contactsDataArrayList.add("刘一");
-//        contactsDataArrayList.add("陈吉科");
-//        contactsDataArrayList.add("刘斯宁");
-//        contactsDataArrayList.add("喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻");
-//        contactsDataArrayList.add("黄芸欢");
-//        contactsDataArrayList.add("王欢欢");
-//        contactsDataArrayList.add("欢欢嘻嘻");
-//        contactsDataArrayList.add("系不系");
+        contactsDataArrayList.add("梁欢");
+        contactsDataArrayList.add("百度-张三");
+        contactsDataArrayList.add("华为深圳利四");
+        contactsDataArrayList.add("东莞华为昭武");
+        contactsDataArrayList.add("83号技师");
+        contactsDataArrayList.add("雅阁77技师");
+        contactsDataArrayList.add("贝贝");
+        contactsDataArrayList.add("配钥匙");
+        contactsDataArrayList.add("北京-欢欢");
+        contactsDataArrayList.add("小混蛋");
+        contactsDataArrayList.add("小日子");
+        contactsDataArrayList.add("岗头村委");
+        contactsDataArrayList.add("自己人");
+        contactsDataArrayList.add("刘一");
+        contactsDataArrayList.add("陈吉科");
+        contactsDataArrayList.add("刘斯宁");
+        contactsDataArrayList.add("喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻");
+        contactsDataArrayList.add("黄芸欢");
+        contactsDataArrayList.add("王欢欢");
+        contactsDataArrayList.add("欢欢嘻嘻");
+        contactsDataArrayList.add("系不系");
         contactsDataArrayList.add("91246853");
         contactsDataArrayList.add("71246853");
 //        contactsDataArrayList.add("13826581417");
@@ -199,8 +199,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        List<SearchResult> list = fastSearch.search("是不是", 0.3f);
 //        List<SearchResult> list = fastSearch.search("欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗欢欢喜喜欢欢嘻嘻嘻嘻欢欢欢欢洗洗", 0.3f);
-        List<SearchResult> list = fastSearch.search("王hua1n hua1n", 0.3f);
-//        List<SearchResult> list = fastSearch.search("1246953", 0.3f);
+        List<SearchResult> list = fastSearch.search("里程B", 0.3f);
+//        List<SearchResult> list = fastSearch.search("124953", 0.3f);
         long end = System.currentTimeMillis();
         Log.i(TAG, "search end, cost time " + (end - start));
         for (SearchResult data : list) {
