@@ -7,7 +7,7 @@ import java.util.HashMap;
  * 汉字的拼音总共有一千多个，这个类提供一个功能：给每一个拼音申请一个索引，
  * 该索引在申请之后到进程结束前有效，然后可以通过索引查询拼音或通过拼音查询索引
  */
-class PinyinIndex {
+public class PinyinIndex {
 
     private static final int INIT_LIST_SIZE = 2048;
 

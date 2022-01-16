@@ -51,7 +51,7 @@ public class MdSearch implements IFastMdSearch {
     @Override
     public List<SearchResult> search(String key, float nearDepth) {
         if (mFastSearch != null) {
-            VoiceList voiceList = VoiceConvert.stringToVoices(key, mPinyinStore);
+            VoiceList voiceList = VoiceConvert.anyToVoices(key, mPinyinStore);
             List<SearchResult> results = mFastSearch.search(voiceList, nearDepth);
             results.sort(mResultComparator);
             return results;
@@ -67,7 +67,7 @@ public class MdSearch implements IFastMdSearch {
 
     @Override
     public List<SearchResult> search(List<String> list, String key, float nearDepth) {
-        VoiceList voiceList = VoiceConvert.stringToVoices(key, mPinyinStore);
+        VoiceList voiceList = VoiceConvert.anyToVoices(key, mPinyinStore);
         List<SearchResult> results = mCommonSearch.search(list, voiceList, nearDepth);
         if (mFastSearch != null) {
             results.addAll(mFastSearch.search(voiceList, nearDepth));
