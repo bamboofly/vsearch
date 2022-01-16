@@ -24,6 +24,10 @@
         Log.d("test", result.getString() + " = " + result.getScore());
     }
 ```
+或者你可以直接输入搜索拼音
+```java
+List<SearchResult> searchResults = search.search(list, "li2 lu4 re2n");
+```
 打印结果：
 ```java
 李露仁 = 2.77
@@ -69,7 +73,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    implementation 'com.github.bamboofly:vsearch:1.0.2'
+    implementation 'com.github.bamboofly:vsearch:1.1.1'
 }
 ```
 
